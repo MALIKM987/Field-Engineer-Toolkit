@@ -6,6 +6,7 @@ import { MeasurementForm } from "../components/MeasurementForm";
 import { MeasurementTable } from "../components/MeasurementTable";
 import { ProjectForm } from "../components/ProjectForm";
 import { ReportExport } from "../components/ReportExport";
+import { useI18n } from "../i18n";
 import type { Measurement, MeasurementFormData, Project, ProjectFormData } from "../types";
 import { dateTimeInputValue, formatDate } from "../utils/date";
 
@@ -34,6 +35,7 @@ export function ProjectDetailsScreen({
   onUpdateMeasurement,
   onUpdateProject,
 }: ProjectDetailsScreenProps) {
+  const { t } = useI18n();
   const { projectId } = useParams();
   const [isEditingProject, setIsEditingProject] = useState(false);
   const [editingMeasurementId, setEditingMeasurementId] = useState<string | null>(null);
@@ -79,12 +81,12 @@ export function ProjectDetailsScreen({
       <div className="space-y-4">
         <Link className="secondary-button w-full sm:w-auto" to="/">
           <ArrowLeft size={18} aria-hidden="true" />
-          Wróć do projektów
+          {t("commonBackToProjects")}
         </Link>
         <div className="panel">
-          <h1 className="text-xl font-bold text-slate-950">Nie znaleziono projektu</h1>
+          <h1 className="text-xl font-bold text-slate-950">{t("projectNotFound")}</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Projekt nie istnieje w lokalnym magazynie danych.
+            {t("projectNotFoundBody")}
           </p>
         </div>
       </div>
@@ -92,19 +94,19 @@ export function ProjectDetailsScreen({
   }
 
   const dialogTitle =
-    pendingDelete?.type === "project" ? "Usunąć projekt?" : "Usunąć pomiar?";
+    pendingDelete?.type === "project" ? t("projectDeleteTitle") : t("measurementDeleteTitle");
   const dialogDescription =
     pendingDelete?.type === "project"
-      ? `Projekt "${pendingDelete.project.name}" zostanie usunięty razem ze wszystkimi pomiarami. Tej operacji nie można cofnąć.`
+      ? t("projectDeleteDescription", { name: pendingDelete.project.name })
       : pendingDelete
-        ? `Pomiar "${pendingDelete.measurement.name}" zostanie usunięty z projektu. Tej operacji nie można cofnąć.`
+        ? t("measurementDeleteDescription", { name: pendingDelete.measurement.name })
         : "";
 
   return (
     <div className="space-y-5">
       <Link className="secondary-button w-full sm:hidden" to="/">
         <ArrowLeft size={18} aria-hidden="true" />
-        Projekty
+        {t("navProjects")}
       </Link>
 
       <section className="panel space-y-4">
@@ -112,7 +114,7 @@ export function ProjectDetailsScreen({
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-sm font-semibold text-teal-700">
               <ClipboardList size={18} aria-hidden="true" />
-              Projekt pomiarowy
+              {t("projectLabel")}
             </div>
             <h1 className="mt-2 break-words text-2xl font-bold text-slate-950">{project.name}</h1>
             {project.description ? (
@@ -134,7 +136,7 @@ export function ProjectDetailsScreen({
                 type="button"
               >
                 <Edit3 size={18} aria-hidden="true" />
-                Edytuj
+                {t("commonEdit")}
               </button>
               <button
                 className="danger-button"
@@ -142,7 +144,7 @@ export function ProjectDetailsScreen({
                 type="button"
               >
                 <Trash2 size={18} aria-hidden="true" />
-                Usuń
+                {t("commonDelete")}
               </button>
             </div>
           </div>
@@ -161,8 +163,8 @@ export function ProjectDetailsScreen({
             onUpdateProject(project.id, data);
             setIsEditingProject(false);
           }}
-          submitLabel="Zapisz projekt"
-          title="Edytuj projekt"
+          submitLabel={t("projectSave")}
+          title={t("projectEditTitle")}
         />
       ) : null}
 
@@ -179,13 +181,13 @@ export function ProjectDetailsScreen({
 
           onAddMeasurement(project.id, data);
         }}
-        submitLabel={editingMeasurement ? "Zapisz pomiar" : "Dodaj pomiar"}
-        title={editingMeasurement ? "Edytuj pomiar" : "Nowy pomiar"}
+        submitLabel={editingMeasurement ? t("measurementSave") : t("measurementAdd")}
+        title={editingMeasurement ? t("measurementEditTitle") : t("measurementNewTitle")}
       />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-slate-950">Historia pomiarów</h2>
+          <h2 className="text-lg font-bold text-slate-950">{t("measurementHistory")}</h2>
           <span className="rounded-md bg-slate-200 px-2 py-1 text-xs font-bold text-slate-700">
             {project.measurements.length}
           </span>

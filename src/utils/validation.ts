@@ -3,66 +3,111 @@ import { isPositiveNumber, parseDecimal } from "./numbers";
 
 type NamedValue = [label: string, value: number];
 
-export function validateProjectInput(data: ProjectFormData): string[] {
+interface FormValidationMessages {
+  measurementNameRequired: string;
+  measurementTimestampRequired: string;
+  measurementUnitRequired: string;
+  measurementValueRequired: string;
+  projectDateRequired: string;
+  projectNameRequired: string;
+}
+
+interface NumericValidationMessages {
+  finite: (label: string) => string;
+  nonZero: (label: string) => string;
+  positive: (label: string) => string;
+}
+
+const defaultFormMessages: FormValidationMessages = {
+  measurementNameRequired: "Podaj nazwę pomiaru.",
+  measurementTimestampRequired: "Wybierz datę i godzinę pomiaru.",
+  measurementUnitRequired: "Podaj jednostkę.",
+  measurementValueRequired: "Podaj poprawną wartość liczbową.",
+  projectDateRequired: "Wybierz datę projektu.",
+  projectNameRequired: "Podaj nazwę projektu.",
+};
+
+const defaultNumericMessages: NumericValidationMessages = {
+  finite: (label) => `${label} musi być poprawną liczbą.`,
+  nonZero: (label) => `${label} musi być różna od zera.`,
+  positive: (label) => `${label} musi być liczbą większą od zera.`,
+};
+
+export function validateProjectInput(
+  data: ProjectFormData,
+  messages = defaultFormMessages,
+): string[] {
   const errors: string[] = [];
 
   if (!data.name.trim()) {
-    errors.push("Podaj nazwę projektu.");
+    errors.push(messages.projectNameRequired);
   }
 
   if (!data.date) {
-    errors.push("Wybierz datę projektu.");
+    errors.push(messages.projectDateRequired);
   }
 
   return errors;
 }
 
-export function validateMeasurementInput(data: MeasurementFormData): string[] {
+export function validateMeasurementInput(
+  data: MeasurementFormData,
+  messages = defaultFormMessages,
+): string[] {
   const errors: string[] = [];
   const numericValue = parseDecimal(data.value);
 
   if (!data.name.trim()) {
-    errors.push("Podaj nazwę pomiaru.");
+    errors.push(messages.measurementNameRequired);
   }
 
   if (!Number.isFinite(numericValue)) {
-    errors.push("Podaj poprawną wartość liczbową.");
+    errors.push(messages.measurementValueRequired);
   }
 
   if (!data.unit.trim()) {
-    errors.push("Podaj jednostkę.");
+    errors.push(messages.measurementUnitRequired);
   }
 
   if (!data.timestamp) {
-    errors.push("Wybierz datę i godzinę pomiaru.");
+    errors.push(messages.measurementTimestampRequired);
   }
 
   return errors;
 }
 
-export function validateFiniteInputs(values: NamedValue[]): string | null {
+export function validateFiniteInputs(
+  values: NamedValue[],
+  messages = defaultNumericMessages,
+): string | null {
   const invalid = values.find(([, value]) => !Number.isFinite(value));
-  return invalid ? `${invalid[0]} musi być poprawną liczbą.` : null;
+  return invalid ? messages.finite(invalid[0]) : null;
 }
 
-export function validateNonZeroInputs(values: NamedValue[]): string | null {
-  const finiteError = validateFiniteInputs(values);
+export function validateNonZeroInputs(
+  values: NamedValue[],
+  messages = defaultNumericMessages,
+): string | null {
+  const finiteError = validateFiniteInputs(values, messages);
 
   if (finiteError) {
     return finiteError;
   }
 
   const invalid = values.find(([, value]) => value === 0);
-  return invalid ? `${invalid[0]} musi być różna od zera.` : null;
+  return invalid ? messages.nonZero(invalid[0]) : null;
 }
 
-export function validatePositiveInputs(values: NamedValue[]): string | null {
-  const finiteError = validateFiniteInputs(values);
+export function validatePositiveInputs(
+  values: NamedValue[],
+  messages = defaultNumericMessages,
+): string | null {
+  const finiteError = validateFiniteInputs(values, messages);
 
   if (finiteError) {
     return finiteError;
   }
 
   const invalid = values.find(([, value]) => !isPositiveNumber(value));
-  return invalid ? `${invalid[0]} musi być liczbą większą od zera.` : null;
+  return invalid ? messages.positive(invalid[0]) : null;
 }

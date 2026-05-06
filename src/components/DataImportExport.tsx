@@ -1,6 +1,7 @@
 import { ChangeEvent, useRef, useState } from "react";
 import { Download, Upload } from "lucide-react";
 import type { Project } from "../types";
+import { useI18n } from "../i18n";
 import { createProjectsJsonExport, parseProjectsJson } from "../lib/storage/projectsJson";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -10,6 +11,7 @@ interface DataImportExportProps {
 }
 
 export function DataImportExport({ projects, onImportProjects }: DataImportExportProps) {
+  const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
 
       setPendingProjects(result.projects);
     } catch {
-      setImportError("Nie udało się odczytać wybranego pliku.");
+      setImportError(t("dataImportReadError"));
     }
   }
 
@@ -58,16 +60,16 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
     }
 
     onImportProjects(pendingProjects);
-    setImportMessage(`Zaimportowano ${pendingProjects.length} projektów.`);
+    setImportMessage(t("dataImportSuccess", { count: pendingProjects.length }));
     setPendingProjects(null);
   }
 
   return (
     <section className="panel space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-slate-950">Import i eksport danych</h2>
+        <h2 className="text-lg font-bold text-slate-950">{t("dataTitle")}</h2>
         <p className="mt-1 text-sm leading-6 text-slate-600">
-          Zapisz wszystkie projekty do pliku JSON albo wczytaj wcześniej wyeksportowane dane.
+          {t("dataLead")}
         </p>
       </div>
 
@@ -86,7 +88,7 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
       <div className="grid gap-2 sm:grid-cols-2">
         <button className="secondary-button w-full" onClick={handleExport} type="button">
           <Download size={18} aria-hidden="true" />
-          Eksportuj JSON
+          {t("dataExportJson")}
         </button>
         <button
           className="primary-button w-full"
@@ -94,7 +96,7 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
           type="button"
         >
           <Upload size={18} aria-hidden="true" />
-          Importuj JSON
+          {t("dataImportJson")}
         </button>
       </div>
 
@@ -108,11 +110,11 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
 
       {pendingProjects ? (
         <ConfirmDialog
-          confirmLabel="Importuj"
-          description={`Import zastąpi aktualne dane liczbą ${pendingProjects.length} projektów z pliku JSON. Tej operacji nie można cofnąć.`}
+          confirmLabel={t("dataImportJson")}
+          description={t("dataImportConfirmDescription", { count: pendingProjects.length })}
           onCancel={() => setPendingProjects(null)}
           onConfirm={confirmImport}
-          title="Nadpisać dane?"
+          title={t("dataImportConfirmTitle")}
         />
       ) : null}
     </section>

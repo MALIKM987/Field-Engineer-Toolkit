@@ -1,6 +1,7 @@
 import { ClipboardList, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Project } from "../types";
+import { useI18n } from "../i18n";
 import { formatDate } from "../utils/date";
 
 interface ProjectListProps {
@@ -9,10 +10,11 @@ interface ProjectListProps {
 }
 
 export function ProjectList({ projects, activeProjectId }: ProjectListProps) {
+  const { t } = useI18n();
   if (projects.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-600">
-        Brak projektów pomiarowych.
+        {t("projectsEmpty")}
       </div>
     );
   }
@@ -42,7 +44,7 @@ export function ProjectList({ projects, activeProjectId }: ProjectListProps) {
                 <h3 className="break-words text-base font-bold text-slate-950">{project.name}</h3>
                 <p className="mt-1 text-sm text-slate-600">{formatDate(project.date)}</p>
                 <p className="mt-2 text-sm text-slate-500">
-                  {project.measurements.length} pomiarów
+                  {t("projectMeasurementCount", { count: project.measurements.length })}
                 </p>
               </div>
               <ChevronRight className="mt-2 shrink-0 text-slate-400" size={18} aria-hidden="true" />

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Plus, Save, X } from "lucide-react";
 import type { ProjectFormData } from "../types";
+import { useI18n } from "../i18n";
 import { todayInputValue } from "../utils/date";
 import { validateProjectInput } from "../utils/validation";
 
@@ -25,6 +26,7 @@ export function ProjectForm({
   onCancel,
   onSubmit,
 }: ProjectFormProps) {
+  const { t } = useI18n();
   const isEditing = Boolean(initialData);
   const [formData, setFormData] = useState<ProjectFormData>(initialData ?? emptyProjectForm());
   const [errors, setErrors] = useState<string[]>([]);
@@ -36,7 +38,14 @@ export function ProjectForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validationErrors = validateProjectInput(formData);
+    const validationErrors = validateProjectInput(formData, {
+      measurementNameRequired: t("validationMeasurementNameRequired"),
+      measurementTimestampRequired: t("validationMeasurementTimestampRequired"),
+      measurementUnitRequired: t("validationMeasurementUnitRequired"),
+      measurementValueRequired: t("validationMeasurementValueRequired"),
+      projectDateRequired: t("validationProjectDateRequired"),
+      projectNameRequired: t("validationProjectNameRequired"),
+    });
     setErrors(validationErrors);
 
     if (validationErrors.length > 0) {
@@ -57,7 +66,9 @@ export function ProjectForm({
   return (
     <form className="panel space-y-4" onSubmit={handleSubmit}>
       <div>
-        <h2 className="text-lg font-bold text-slate-950">{title ?? "Nowy projekt"}</h2>
+        <h2 className="text-lg font-bold text-slate-950">
+          {title ?? t("projectNewTitle")}
+        </h2>
       </div>
 
       {errors.length > 0 ? (
@@ -69,7 +80,7 @@ export function ProjectForm({
       ) : null}
 
       <label className="block">
-        <span className="field-label">Nazwa</span>
+        <span className="field-label">{t("projectName")}</span>
         <input
           className="field-input"
           value={formData.name}
@@ -79,19 +90,19 @@ export function ProjectForm({
       </label>
 
       <label className="block">
-        <span className="field-label">Opis</span>
+        <span className="field-label">{t("projectDescription")}</span>
         <textarea
           className="field-input min-h-28 resize-y"
           value={formData.description}
           onChange={(event) =>
             setFormData((current) => ({ ...current, description: event.target.value }))
           }
-          placeholder="Zakres pomiarów, lokalizacja, uwagi"
+          placeholder={t("projectDescriptionPlaceholder")}
         />
       </label>
 
       <label className="block">
-        <span className="field-label">Data</span>
+        <span className="field-label">{t("projectDate")}</span>
         <input
           className="field-input"
           type="date"
@@ -103,13 +114,13 @@ export function ProjectForm({
       <div className="flex flex-col gap-2 sm:flex-row">
         <button className="primary-button w-full" type="submit">
           {isEditing ? <Save size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}
-          {submitLabel ?? (isEditing ? "Zapisz projekt" : "Utwórz projekt")}
+          {submitLabel ?? (isEditing ? t("projectSave") : t("projectCreate"))}
         </button>
 
         {onCancel ? (
           <button className="secondary-button w-full sm:w-auto" onClick={onCancel} type="button">
             <X size={18} aria-hidden="true" />
-            Anuluj
+            {t("commonCancel")}
           </button>
         ) : null}
       </div>

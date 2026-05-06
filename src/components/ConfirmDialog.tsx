@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { useI18n } from "../i18n";
 
 interface ConfirmDialogProps {
   confirmLabel?: string;
@@ -9,12 +10,13 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
-  confirmLabel = "Usuń",
+  confirmLabel,
   description,
   title,
   onCancel,
   onConfirm,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
   return (
     <div className="fixed inset-0 z-50 flex items-end bg-slate-950/45 p-4 sm:items-center sm:justify-center">
       <div
@@ -34,10 +36,10 @@ export function ConfirmDialog({
 
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button className="secondary-button w-full sm:w-auto" onClick={onCancel} type="button">
-            Anuluj
+            {t("commonCancel")}
           </button>
           <button className="danger-button w-full sm:w-auto" onClick={onConfirm} type="button">
-            {confirmLabel}
+            {confirmLabel ?? t("commonDelete")}
           </button>
         </div>
       </div>

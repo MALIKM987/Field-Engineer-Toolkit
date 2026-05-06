@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Plus, Save, X } from "lucide-react";
 import type { MeasurementFormData } from "../types";
+import { useI18n } from "../i18n";
 import { dateTimeInputValue } from "../utils/date";
 import { validateMeasurementInput } from "../utils/validation";
 
@@ -27,6 +28,7 @@ export function MeasurementForm({
   onCancel,
   onSubmit,
 }: MeasurementFormProps) {
+  const { t } = useI18n();
   const isEditing = Boolean(initialData);
   const [formData, setFormData] = useState<MeasurementFormData>(
     initialData ?? emptyMeasurementForm(),
@@ -40,7 +42,14 @@ export function MeasurementForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const validationErrors = validateMeasurementInput(formData);
+    const validationErrors = validateMeasurementInput(formData, {
+      measurementNameRequired: t("validationMeasurementNameRequired"),
+      measurementTimestampRequired: t("validationMeasurementTimestampRequired"),
+      measurementUnitRequired: t("validationMeasurementUnitRequired"),
+      measurementValueRequired: t("validationMeasurementValueRequired"),
+      projectDateRequired: t("validationProjectDateRequired"),
+      projectNameRequired: t("validationProjectNameRequired"),
+    });
     setErrors(validationErrors);
 
     if (validationErrors.length > 0) {
@@ -63,7 +72,9 @@ export function MeasurementForm({
   return (
     <form className="panel space-y-4" onSubmit={handleSubmit}>
       <div>
-        <h2 className="text-lg font-bold text-slate-950">{title ?? "Nowy pomiar"}</h2>
+        <h2 className="text-lg font-bold text-slate-950">
+          {title ?? t("measurementNewTitle")}
+        </h2>
       </div>
 
       {errors.length > 0 ? (
@@ -76,19 +87,19 @@ export function MeasurementForm({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="field-label">Nazwa pomiaru</span>
+          <span className="field-label">{t("measurementName")}</span>
           <input
             className="field-input"
             value={formData.name}
             onChange={(event) =>
               setFormData((current) => ({ ...current, name: event.target.value }))
             }
-            placeholder="Napięcie zasilania"
+            placeholder={t("measurementNamePlaceholder")}
           />
         </label>
 
         <label className="block">
-          <span className="field-label">Data i godzina</span>
+          <span className="field-label">{t("measurementTimestamp")}</span>
           <input
             className="field-input"
             type="datetime-local"
@@ -102,7 +113,7 @@ export function MeasurementForm({
 
       <div className="grid grid-cols-[1fr_112px] gap-3">
         <label className="block">
-          <span className="field-label">Wartość</span>
+          <span className="field-label">{t("measurementValue")}</span>
           <input
             className="field-input"
             inputMode="decimal"
@@ -115,7 +126,7 @@ export function MeasurementForm({
         </label>
 
         <label className="block">
-          <span className="field-label">Jednostka</span>
+          <span className="field-label">{t("measurementUnit")}</span>
           <input
             className="field-input"
             value={formData.unit}
@@ -128,27 +139,27 @@ export function MeasurementForm({
       </div>
 
       <label className="block">
-        <span className="field-label">Komentarz</span>
+        <span className="field-label">{t("measurementComment")}</span>
         <textarea
           className="field-input min-h-24 resize-y"
           value={formData.comment}
           onChange={(event) =>
             setFormData((current) => ({ ...current, comment: event.target.value }))
           }
-          placeholder="Warunki pomiaru, przyrząd, odchylenia"
+          placeholder={t("measurementCommentPlaceholder")}
         />
       </label>
 
       <div className="flex flex-col gap-2 sm:flex-row">
         <button className="primary-button w-full" type="submit">
           {isEditing ? <Save size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}
-          {submitLabel ?? (isEditing ? "Zapisz pomiar" : "Dodaj pomiar")}
+          {submitLabel ?? (isEditing ? t("measurementSave") : t("measurementAdd"))}
         </button>
 
         {onCancel ? (
           <button className="secondary-button w-full sm:w-auto" onClick={onCancel} type="button">
             <X size={18} aria-hidden="true" />
-            Anuluj
+            {t("commonCancel")}
           </button>
         ) : null}
       </div>

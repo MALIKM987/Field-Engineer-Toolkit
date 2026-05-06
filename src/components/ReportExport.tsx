@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Download } from "lucide-react";
 import type { Project } from "../types";
+import { useI18n } from "../i18n";
 import { exportProjectReport } from "../lib/reports/projectReport";
 
 interface ReportExportProps {
@@ -8,6 +9,7 @@ interface ReportExportProps {
 }
 
 export function ReportExport({ project }: ReportExportProps) {
+  const { t } = useI18n();
   const [isExporting, setIsExporting] = useState(false);
 
   async function handleExport() {
@@ -23,7 +25,7 @@ export function ReportExport({ project }: ReportExportProps) {
   return (
     <button className="secondary-button w-full sm:w-auto" disabled={isExporting} onClick={handleExport}>
       <Download size={18} aria-hidden="true" />
-      {isExporting ? "Generowanie..." : "Eksport PDF"}
+      {isExporting ? t("reportGenerating") : t("reportExportPdf")}
     </button>
   );
 }

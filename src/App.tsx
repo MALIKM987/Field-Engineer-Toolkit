@@ -8,22 +8,18 @@ import { ProjectDetailsScreen } from "./screens/ProjectDetailsScreen";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useI18n } from "./i18n";
 import type { MeasurementFormData, Project, ProjectFormData } from "./types";
 import { dateTimeLocalToIso } from "./utils/date";
 import { createId } from "./utils/id";
 import { parseDecimal } from "./utils/numbers";
-
-const navItems = [
-  { to: "/", label: "Projekty", icon: ClipboardList },
-  { to: "/calculators", label: "Kalkulatory", icon: Calculator },
-  { to: "/settings", label: "Ustawienia", icon: Settings },
-];
 
 function isProjectRoute(pathname: string) {
   return pathname === "/" || pathname.startsWith("/projects/");
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [projects, setProjects] = useLocalStorage<Project[]>(
     PROJECTS_STORAGE_KEY,
     [],
@@ -34,6 +30,11 @@ export default function App() {
   const activeProjectId = location.pathname.startsWith("/projects/")
     ? location.pathname.split("/")[2]
     : undefined;
+  const navItems = [
+    { to: "/", label: t("navProjects"), icon: ClipboardList },
+    { to: "/calculators", label: t("navCalculators"), icon: Calculator },
+    { to: "/settings", label: t("navSettings"), icon: Settings },
+  ];
 
   function handleCreateProject(data: ProjectFormData) {
     const project: Project = {
@@ -149,15 +150,15 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f7f4] text-slate-900">
-      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
           <div className="flex h-11 w-11 items-center justify-center rounded-md bg-teal-700 text-white">
             <Wrench size={22} aria-hidden="true" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-teal-700">Field Engineer Toolkit</p>
-            <h1 className="truncate text-lg font-bold text-slate-950">MVP pomiarów i obliczeń</h1>
+            <h1 className="truncate text-lg font-bold text-slate-950">{t("appSubtitle")}</h1>
           </div>
         </div>
       </header>
@@ -189,7 +190,9 @@ export default function App() {
           </nav>
 
           <section className="space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">Projekty</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
+              {t("navProjects")}
+            </h2>
             <ProjectList projects={projects} activeProjectId={activeProjectId} />
           </section>
         </aside>
@@ -224,7 +227,7 @@ export default function App() {
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:hidden">
         <div className="grid grid-cols-3 px-2 pb-[env(safe-area-inset-bottom)]">
           {navItems.map((item) => {
             const Icon = item.icon;

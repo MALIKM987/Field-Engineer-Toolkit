@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import type { Measurement } from "../types";
+import { useI18n } from "../i18n";
 import { formatDateTime } from "../utils/date";
 import { formatEngineeringNumber } from "../utils/numbers";
 
@@ -16,6 +17,7 @@ export function MeasurementTable({
   onDeleteMeasurement,
   onEditMeasurement,
 }: MeasurementTableProps) {
+  const { t } = useI18n();
   const sortedMeasurements = [...measurements].sort(
     (left, right) => new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime(),
   );
@@ -23,7 +25,7 @@ export function MeasurementTable({
   if (sortedMeasurements.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-600">
-        Brak pomiarów w projekcie.
+        {t("measurementEmpty")}
       </div>
     );
   }
@@ -34,12 +36,12 @@ export function MeasurementTable({
         <table className="min-w-[920px] w-full border-collapse text-left text-sm">
           <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
             <tr>
-              <th className="px-4 py-3 font-bold">Nazwa</th>
-              <th className="px-4 py-3 font-bold">Wartość</th>
-              <th className="px-4 py-3 font-bold">Jednostka</th>
-              <th className="px-4 py-3 font-bold">Komentarz</th>
-              <th className="px-4 py-3 font-bold">Data i godzina</th>
-              <th className="px-4 py-3 text-right font-bold">Akcje</th>
+              <th className="px-4 py-3 font-bold">{t("measurementName")}</th>
+              <th className="px-4 py-3 font-bold">{t("measurementValue")}</th>
+              <th className="px-4 py-3 font-bold">{t("measurementUnit")}</th>
+              <th className="px-4 py-3 font-bold">{t("measurementComment")}</th>
+              <th className="px-4 py-3 font-bold">{t("measurementTimestamp")}</th>
+              <th className="px-4 py-3 text-right font-bold">{t("commonActions")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -66,7 +68,7 @@ export function MeasurementTable({
                           type="button"
                         >
                           <Pencil size={16} aria-hidden="true" />
-                          Edytuj
+                          {t("commonEdit")}
                         </button>
                       ) : null}
                       {onDeleteMeasurement ? (
@@ -76,7 +78,7 @@ export function MeasurementTable({
                           type="button"
                         >
                           <Trash2 size={16} aria-hidden="true" />
-                          Usuń
+                          {t("commonDelete")}
                         </button>
                       ) : null}
                     </div>

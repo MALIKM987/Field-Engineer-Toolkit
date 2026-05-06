@@ -10,5 +10,7 @@ export type {
   FrequencyMode,
   OhmsLawTarget,
   PowerMode,
+  WaveformRmsInput,
+  WaveformType,
   VppMode,
 } from "./calculators";

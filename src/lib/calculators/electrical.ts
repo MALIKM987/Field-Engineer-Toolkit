@@ -5,9 +5,9 @@ import type {
   PowerMode,
   VppMode,
 } from "../../types";
+import { calculateWaveformRms } from "./waveforms";
 
 const TWO_PI = 2 * Math.PI;
-const SQRT_TWO = Math.sqrt(2);
 
 export function calculateOhmsLaw(
   target: OhmsLawTarget,
@@ -72,9 +72,5 @@ export function calculateFrequencyPeriod(mode: FrequencyMode, value: number): Ca
 }
 
 export function calculateVppVrms(mode: VppMode, value: number): CalculatorResult {
-  if (mode === "vppToVrms") {
-    return { label: "Vrms", value: value / (2 * SQRT_TWO), unit: "V" };
-  }
-
-  return { label: "Vpp", value: value * 2 * SQRT_TWO, unit: "V" };
+  return calculateWaveformRms({ mode, value, waveform: "sine" });
 }
