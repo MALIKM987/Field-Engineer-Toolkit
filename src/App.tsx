@@ -66,6 +66,11 @@ export default function App() {
     }
   }
 
+  function handleImportProjects(importedProjects: Project[]) {
+    setProjects(importedProjects);
+    navigate("/");
+  }
+
   function handleAddMeasurement(projectId: string, data: MeasurementFormData) {
     setProjects((currentProjects) =>
       currentProjects.map((project) => {
@@ -204,7 +209,12 @@ export default function App() {
               path="/projects/:projectId"
             />
             <Route element={<CalculatorsScreen />} path="/calculators" />
-            <Route element={<SettingsScreen />} path="/settings" />
+            <Route
+              element={
+                <SettingsScreen projects={projects} onImportProjects={handleImportProjects} />
+              }
+              path="/settings"
+            />
           </Routes>
         </main>
       </div>

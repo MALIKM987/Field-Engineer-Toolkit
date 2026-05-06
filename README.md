@@ -19,6 +19,7 @@ The current version supports creating, editing, and deleting both projects and m
   - frequency <-> period conversion,
   - Vpp <-> Vrms conversion for sine waves.
 - Export a project report to PDF.
+- Export all projects to JSON and import projects from JSON with structure validation.
 - Store data locally in the browser with `localStorage`.
 - Mobile-first UI with touch-friendly controls and desktop layout support.
 
@@ -90,6 +91,8 @@ field-engineer-toolkit.projects
 
 The storage logic is isolated in `src/lib/storage`, so it can later be replaced with IndexedDB, a PWA-friendly storage layer, or Capacitor storage.
 
+The app can export all projects to a JSON file and import projects from JSON after validating the file structure and asking for overwrite confirmation.
+
 ## Roadmap
 
 1. Web MVP: React + TypeScript + Vite + Tailwind.
@@ -98,7 +101,6 @@ The storage logic is isolated in `src/lib/storage`, so it can later be replaced 
 
 Planned product improvements:
 
-- Import and export project data.
 - Configurable units and calculator presets.
 - Richer PDF report templates.
 - Optional IndexedDB storage migration.

@@ -163,7 +163,7 @@ function OhmsLawCalculator() {
     if (target === "voltage") {
       const validation = firstError(
         validateFiniteInputs([["Prąd", i]]),
-        validateNonZeroInputs([["Rezystancja", r]]),
+        validatePositiveInputs([["Rezystancja", r]]),
       );
       return validation
         ? { result: null, error: validation }
@@ -173,7 +173,7 @@ function OhmsLawCalculator() {
     if (target === "current") {
       const validation = firstError(
         validateFiniteInputs([["Napięcie", u]]),
-        validateNonZeroInputs([["Rezystancja", r]]),
+        validatePositiveInputs([["Rezystancja", r]]),
       );
       return validation
         ? { result: null, error: validation }
@@ -244,7 +244,7 @@ function PowerCalculator() {
     if (mode === "ur") {
       const validation = firstError(
         validateFiniteInputs([["Napięcie", u]]),
-        validateNonZeroInputs([["Rezystancja", r]]),
+        validatePositiveInputs([["Rezystancja", r]]),
       );
       return validation
         ? { result: null, error: validation }
@@ -253,7 +253,7 @@ function PowerCalculator() {
 
     const validation = firstError(
       validateFiniteInputs([["Prąd", i]]),
-      validateNonZeroInputs([["Rezystancja", r]]),
+      validatePositiveInputs([["Rezystancja", r]]),
     );
     return validation
       ? { result: null, error: validation }
@@ -303,7 +303,7 @@ function VoltageDividerCalculator() {
     const denominator = r1 + r2;
     const validation = firstError(
       validateFiniteInputs([["Napięcie wejściowe", vin]]),
-      validateNonZeroInputs([
+      validatePositiveInputs([
         ["R1", r1],
         ["R2", r2],
       ]),

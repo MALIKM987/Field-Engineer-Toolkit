@@ -1,12 +1,21 @@
 import { Database, HardDrive, Smartphone } from "lucide-react";
+import { DataImportExport } from "../components/DataImportExport";
+import type { Project } from "../types";
 
-export function SettingsScreen() {
+interface SettingsScreenProps {
+  projects: Project[];
+  onImportProjects: (projects: Project[]) => void;
+}
+
+export function SettingsScreen({ projects, onImportProjects }: SettingsScreenProps) {
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-slate-950">Ustawienia</h1>
         <p className="mt-1 text-sm text-slate-600">Status aplikacji i kierunek rozwoju.</p>
       </div>
+
+      <DataImportExport projects={projects} onImportProjects={onImportProjects} />
 
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="panel">
