@@ -28,8 +28,10 @@ The current version supports creating, editing, and deleting both projects and m
 - React 18
 - TypeScript
 - Vite
+- Vite PWA
 - Tailwind CSS
 - React Router
+- Capacitor Android
 - jsPDF + jsPDF AutoTable
 - Lucide React icons
 
@@ -65,6 +67,24 @@ Preview the production build:
 npm run preview
 ```
 
+Sync the web build into the Android project:
+
+```bash
+npm run android:sync
+```
+
+Open the Android project in Android Studio:
+
+```bash
+npm run android:open
+```
+
+Build and run through Capacitor:
+
+```bash
+npm run android:run
+```
+
 ## Project Structure
 
 ```text
@@ -78,7 +98,10 @@ src/
   screens/           Route-level screens
   types/             Domain and calculator types
   utils/             Validation, dates, IDs, number helpers
+android/             Capacitor Android project for Android Studio
 ```
+
+The main application code stays in `src/`. The `android/` folder is only used to run, sync, and build the mobile wrapper in Android Studio.
 
 ## Routes
 
@@ -109,6 +132,46 @@ Unit tests are written with Vitest and cover calculator logic, calculator input 
 
 ```bash
 npm run test
+```
+
+## PWA
+
+The app is configured as a PWA with `vite-plugin-pwa`. Production builds generate a web manifest and service worker, so the app has an offline-ready shell and can be installed by supported browsers.
+
+PWA metadata:
+
+- `name`: Field Engineer Toolkit
+- `short_name`: Field Toolkit
+- `display`: standalone
+- `theme_color`: `#0f766e`
+- `background_color`: `#f5f7f4`
+
+## Android / Capacitor
+
+The Android target uses Capacitor and keeps the React application in `src/`. Do not move application logic into `android/`; Android Studio uses that folder as the native wrapper around the built web app.
+
+Capacitor configuration:
+
+- `appId`: `com.fieldengineer.toolkit`
+- `appName`: `Field Engineer Toolkit`
+- `webDir`: `dist`
+
+After changing React, TypeScript, Tailwind, or assets in `src/` or `public/`, run this before testing in Android Studio:
+
+```bash
+npm run android:sync
+```
+
+Then open the generated Android project:
+
+```bash
+npm run android:open
+```
+
+For a device or emulator run through Capacitor:
+
+```bash
+npm run android:run
 ```
 
 ## Roadmap

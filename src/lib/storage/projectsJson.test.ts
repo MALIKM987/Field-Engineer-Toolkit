@@ -63,11 +63,47 @@ describe("projects JSON import and export", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("rejects a project with a blank ID", () => {
+    const result = parseProjectsJson(JSON.stringify({ projects: [project({ id: "   " })] }));
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects a project with a blank name", () => {
+    const result = parseProjectsJson(JSON.stringify({ projects: [project({ name: "   " })] }));
+
+    expect(result.ok).toBe(false);
+  });
+
   it("rejects a measurement without required fields", () => {
     const result = parseProjectsJson(
       JSON.stringify({
         projects: [project({ measurements: [{ id: "measurement-1" } as Measurement] })],
       }),
+    );
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects a measurement with a blank ID", () => {
+    const result = parseProjectsJson(
+      JSON.stringify({ projects: [project({ measurements: [measurement({ id: "   " })] })] }),
+    );
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects a measurement with a blank name", () => {
+    const result = parseProjectsJson(
+      JSON.stringify({ projects: [project({ measurements: [measurement({ name: "   " })] })] }),
+    );
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("rejects a measurement with a blank unit", () => {
+    const result = parseProjectsJson(
+      JSON.stringify({ projects: [project({ measurements: [measurement({ unit: "   " })] })] }),
     );
 
     expect(result.ok).toBe(false);

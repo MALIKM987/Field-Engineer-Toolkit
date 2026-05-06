@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Field Engineer Toolkit icon">
+  <rect width="512" height="512" rx="96" fill="#0f766e"/>
+  <path d="M140 156h232c18 0 32 14 32 32v168c0 18-14 32-32 32H140c-18 0-32-14-32-32V188c0-18 14-32 32-32Z" fill="#f5f7f4"/>
+  <path d="M160 220h112M160 264h192M160 308h88" stroke="#172033" stroke-width="24" stroke-linecap="round"/>
+  <path d="M326 194l44 44-118 118-54 10 10-54 118-118Z" fill="#f59e0b"/>
+  <path d="M326 194l44 44" stroke="#172033" stroke-width="20" stroke-linecap="round"/>
+</svg>

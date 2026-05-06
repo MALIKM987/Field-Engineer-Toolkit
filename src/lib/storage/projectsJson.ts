@@ -18,6 +18,12 @@ function isValidDate(value: string): boolean {
   return Number.isFinite(new Date(value).getTime());
 }
 
+function assertNonBlankString(value: string, message: string): void {
+  if (!value.trim()) {
+    throw new Error(message);
+  }
+}
+
 function validateMeasurement(value: unknown, projectIndex: number, measurementIndex: number): Measurement {
   if (!isRecord(value)) {
     throw new Error(`Pomiar ${measurementIndex + 1} w projekcie ${projectIndex + 1} ma niepoprawny format.`);
@@ -32,6 +38,19 @@ function validateMeasurement(value: unknown, projectIndex: number, measurementIn
   ) {
     throw new Error(`Pomiar ${measurementIndex + 1} w projekcie ${projectIndex + 1} ma brakujące pola tekstowe.`);
   }
+
+  assertNonBlankString(
+    value.id,
+    `Pomiar ${measurementIndex + 1} w projekcie ${projectIndex + 1} ma pusty identyfikator.`,
+  );
+  assertNonBlankString(
+    value.name,
+    `Pomiar ${measurementIndex + 1} w projekcie ${projectIndex + 1} ma pustą nazwę.`,
+  );
+  assertNonBlankString(
+    value.unit,
+    `Pomiar ${measurementIndex + 1} w projekcie ${projectIndex + 1} ma pustą jednostkę.`,
+  );
 
   if (typeof value.value !== "number" || !Number.isFinite(value.value)) {
     throw new Error(`Pomiar ${measurementIndex + 1} w projekcie ${projectIndex + 1} ma niepoprawną wartość.`);
@@ -64,6 +83,9 @@ function validateProject(value: unknown, projectIndex: number): Project {
   ) {
     throw new Error(`Projekt ${projectIndex + 1} ma brakujące pola tekstowe.`);
   }
+
+  assertNonBlankString(value.id, `Projekt ${projectIndex + 1} ma pusty identyfikator.`);
+  assertNonBlankString(value.name, `Projekt ${projectIndex + 1} ma pustą nazwę.`);
 
   if (!isValidDate(value.date)) {
     throw new Error(`Projekt ${projectIndex + 1} ma niepoprawną datę.`);

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Field Engineer Toolkit</string>
+    <string name="title_activity_main">Field Engineer Toolkit</string>
+    <string name="package_name">com.fieldengineer.toolkit</string>
+    <string name="custom_url_scheme">com.fieldengineer.toolkit</string>
+</resources>
