@@ -20,6 +20,14 @@ export const languageOptions: Array<{ code: LanguageCode; label: string }> = [
   { code: "fr", label: "Français" },
 ];
 
+export const languageLocales: Record<LanguageCode, string> = {
+  de: "de-DE",
+  en: "en-US",
+  es: "es-ES",
+  fr: "fr-FR",
+  pl: "pl-PL",
+};
+
 const dictionaries: Record<LanguageCode, typeof pl> = {
   de,
   en,

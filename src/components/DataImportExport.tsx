@@ -2,6 +2,7 @@ import { ChangeEvent, useRef, useState } from "react";
 import { Download, Upload } from "lucide-react";
 import type { Project } from "../types";
 import { useI18n } from "../i18n";
+import { ExportFileError, exportFile } from "../lib/files/exportFile";
 import { createProjectsJsonExport, parseProjectsJson } from "../lib/storage/projectsJson";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -13,19 +14,51 @@ interface DataImportExportProps {
 export function DataImportExport({ projects, onImportProjects }: DataImportExportProps) {
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [pendingProjects, setPendingProjects] = useState<Project[] | null>(null);
 
-  function handleExport() {
-    const exportData = createProjectsJsonExport(projects);
-    const blob = new Blob([exportData.content], { type: exportData.mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = exportData.fileName;
-    link.click();
-    URL.revokeObjectURL(url);
+  function resolveExportError(error: unknown): string {
+    if (error instanceof ExportFileError) {
+      if (error.code === "share-unavailable") {
+        return t("nativeShareUnavailable");
+      }
+
+      if (error.code === "export-unavailable") {
+        return t("exportUnavailable");
+      }
+    }
+
+    return t("jsonExportError");
+  }
+
+  async function handleExport() {
+    setExportError(null);
+    setExportMessage(null);
+    setImportError(null);
+    setImportMessage(null);
+    setIsExporting(true);
+
+    try {
+      const exportData = createProjectsJsonExport(projects);
+      const result = await exportFile({
+        data: exportData.content,
+        dataEncoding: "text",
+        dialogTitle: t("shareDialogTitle"),
+        fileName: exportData.fileName,
+        mimeType: exportData.mimeType,
+        shareTitle: t("shareJsonTitle"),
+      });
+
+      setExportMessage(result.platform === "native" ? t("fileSavedAndShared") : t("exportSuccess"));
+    } catch (error) {
+      setExportError(resolveExportError(error));
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
@@ -38,6 +71,8 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
 
     setImportError(null);
     setImportMessage(null);
+    setExportError(null);
+    setExportMessage(null);
 
     try {
       const rawValue = await file.text();
@@ -73,6 +108,18 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
         </p>
       </div>
 
+      {exportError ? (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {exportError}
+        </div>
+      ) : null}
+
+      {exportMessage ? (
+        <div className="rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-sm text-teal-800">
+          {exportMessage}
+        </div>
+      ) : null}
+
       {importError ? (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {importError}
@@ -86,9 +133,9 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
       ) : null}
 
       <div className="grid gap-2 sm:grid-cols-2">
-        <button className="secondary-button w-full" onClick={handleExport} type="button">
+        <button className="secondary-button w-full" disabled={isExporting} onClick={handleExport} type="button">
           <Download size={18} aria-hidden="true" />
-          {t("dataExportJson")}
+          {isExporting ? t("reportGenerating") : t("dataExportJson")}
         </button>
         <button
           className="primary-button w-full"

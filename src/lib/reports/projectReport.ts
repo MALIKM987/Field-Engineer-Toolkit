@@ -1,16 +1,41 @@
 import type { Project } from "../../types";
 import { formatDate, formatDateTime } from "../../utils/date";
+import { arrayBufferToBase64 } from "../files/base64";
 
-function reportFileName(projectName: string): string {
-  const normalizedName = projectName
-    .toLowerCase()
-    .replace(/[^a-z0-9ąćęłńóśźż]+/gi, "-")
-    .replace(/^-|-$/g, "");
-
-  return `raport-${normalizedName || "projekt"}.pdf`;
+export interface ProjectReportLabels {
+  comment: string;
+  dateAndTime: string;
+  description: string;
+  measurementCount: string;
+  name: string;
+  noDescription: string;
+  projectDate: string;
+  projectReport: string;
+  unit: string;
+  value: string;
 }
 
-export async function exportProjectReport(project: Project): Promise<void> {
+export interface ProjectReportExport {
+  data: string;
+  dataEncoding: "base64";
+  fileName: string;
+  mimeType: string;
+}
+
+export function projectReportFileName(projectName: string): string {
+  const normalizedName = projectName
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-|-$/g, "");
+
+  return `field-engineer-toolkit-${normalizedName || "project"}-report.pdf`;
+}
+
+export async function createProjectReportExport(
+  project: Project,
+  labels: ProjectReportLabels,
+  locale: string,
+): Promise<ProjectReportExport> {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
@@ -21,29 +46,34 @@ export async function exportProjectReport(project: Project): Promise<void> {
   doc.text("Field Engineer Toolkit", 14, 18);
 
   doc.setFontSize(13);
-  doc.text(`Raport projektu: ${project.name}`, 14, 30);
+  doc.text(`${labels.projectReport}: ${project.name}`, 14, 30);
 
   doc.setFontSize(10);
-  doc.text(`Data projektu: ${formatDate(project.date)}`, 14, 40);
-  doc.text(`Liczba pomiarów: ${project.measurements.length}`, 14, 46);
+  doc.text(`${labels.projectDate}: ${formatDate(project.date, locale)}`, 14, 40);
+  doc.text(`${labels.measurementCount}: ${project.measurements.length}`, 14, 46);
 
-  const description = project.description.trim() || "Brak opisu";
-  const splitDescription = doc.splitTextToSize(`Opis: ${description}`, 180);
+  const description = project.description.trim() || labels.noDescription;
+  const splitDescription = doc.splitTextToSize(`${labels.description}: ${description}`, 180);
   doc.text(splitDescription, 14, 56);
 
   autoTable(doc, {
-    startY: 68,
-    head: [["Nazwa", "Wartość", "Jednostka", "Komentarz", "Data i godzina"]],
     body: project.measurements.map((measurement) => [
       measurement.name,
       String(measurement.value),
       measurement.unit,
       measurement.comment || "-",
-      formatDateTime(measurement.timestamp),
+      formatDateTime(measurement.timestamp, locale),
     ]),
-    styles: { fontSize: 8, cellPadding: 2 },
+    head: [[labels.name, labels.value, labels.unit, labels.comment, labels.dateAndTime]],
     headStyles: { fillColor: [15, 118, 110] },
+    startY: 68,
+    styles: { cellPadding: 2, fontSize: 8 },
   });
 
-  doc.save(reportFileName(project.name));
+  return {
+    data: arrayBufferToBase64(doc.output("arraybuffer")),
+    dataEncoding: "base64",
+    fileName: projectReportFileName(project.name),
+    mimeType: "application/pdf",
+  };
 }

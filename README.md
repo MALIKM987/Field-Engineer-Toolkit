@@ -21,7 +21,7 @@ It also includes language selection, light/dark/system appearance modes, and an 
   - RC filter cutoff frequency,
   - frequency <-> period conversion,
   - Vpp <-> Vrms conversion for sine, square, triangle, sawtooth, DC, PWM, and custom conversion factors.
-- Export a project report to PDF.
+- Export a project report to PDF in the browser or through Android system sharing.
 - Export all projects to JSON and import projects from JSON with structure validation.
 - Store data locally in the browser with `localStorage`.
 - Mobile-first UI with touch-friendly controls and desktop layout support.
@@ -35,6 +35,7 @@ It also includes language selection, light/dark/system appearance modes, and an 
 - Tailwind CSS
 - React Router
 - Capacitor Android
+- Capacitor Filesystem + Share
 - jsPDF + jsPDF AutoTable
 - Lucide React icons
 
@@ -97,6 +98,7 @@ src/
   i18n/              Local dictionaries and language provider
   lib/
     calculators/     Pure calculator logic independent from UI
+    files/           Shared web/native file export helpers
     reports/         PDF report generation
     storage/         Local data persistence adapter
   screens/           Route-level screens
@@ -113,7 +115,7 @@ The main application code stays in `src/`. The `android/` folder is only used to
 - `/` - projects list and project creation
 - `/projects/:projectId` - project details, measurements, PDF export
 - `/calculators` - engineering calculators
-- `/settings` - app status and future migration notes
+- `/settings` - language, appearance, JSON backup, and app information
 
 ## Data Storage
 
@@ -127,15 +129,22 @@ The storage logic is isolated in `src/lib/storage`, so it can later be replaced 
 
 The app can export all projects to a JSON file and import projects from JSON after validating the file structure and asking for overwrite confirmation.
 
+File export uses a shared layer in `src/lib/files`:
+
+- Web/PWA: PDF and JSON are downloaded through browser file download.
+- Android/Capacitor: files are written to `Directory.Cache` with `@capacitor/filesystem` and then passed to the Android system share sheet with `@capacitor/share`.
+
 Language and appearance preferences are also stored locally in the browser.
 
 ## JSON Backup
 
 Use `Settings -> Import i eksport danych` to export all projects to a JSON backup file. Import validates the JSON structure before replacing current browser data and asks for confirmation before overwriting.
 
+On Android, JSON backup export opens the system share menu so the user can save or share the file through installed apps.
+
 ## Tests
 
-Unit tests are written with Vitest and cover calculator logic, calculator input validation, and JSON project import validation. Run them with:
+Unit tests are written with Vitest and cover calculator logic, calculator input validation, JSON project import validation, and file export helpers. Run them with:
 
 ```bash
 npm run test
@@ -199,6 +208,11 @@ Capacitor configuration:
 - `appName`: `Field Engineer Toolkit`
 - `webDir`: `dist`
 
+Native file export uses:
+
+- `@capacitor/filesystem` for temporary cache writes,
+- `@capacitor/share` for the Android share menu.
+
 After changing React, TypeScript, Tailwind, or assets in `src/` or `public/`, run this before testing in Android Studio:
 
 ```bash
@@ -219,15 +233,19 @@ npm run android:run
 
 ## Roadmap
 
-1. Web MVP: React + TypeScript + Vite + Tailwind.
-2. PWA: manifest, service worker, offline-ready shell, install prompt.
-3. Android: Capacitor integration and APK/AAB generation.
-
 Planned product improvements:
 
-- Configurable units and calculator presets.
-- Richer PDF report templates.
-- Optional IndexedDB storage migration.
+- Measurement photos.
+- PDF reports with photos.
+- IndexedDB for larger local datasets.
+- Report and backup sharing from Android.
+- Project attachments.
+- New calculators:
+  - LED resistor,
+  - ADC/DAC,
+  - dBm <-> W,
+  - voltage drop on a cable,
+  - battery runtime.
 
 ## License
 

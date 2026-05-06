@@ -1,5 +1,6 @@
-import { Database, HardDrive, Smartphone } from "lucide-react";
+import { Info } from "lucide-react";
 import { DataImportExport } from "../components/DataImportExport";
+import { APP_NAME, APP_PLATFORMS, APP_VERSION } from "../config/appInfo";
 import { languageOptions, useI18n } from "../i18n";
 import { useTheme, type ThemeMode } from "../theme";
 import type { Project } from "../types";
@@ -66,34 +67,28 @@ export function SettingsScreen({ projects, onImportProjects }: SettingsScreenPro
 
       <DataImportExport projects={projects} onImportProjects={onImportProjects} />
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <div className="panel">
-          <div className="flex items-center gap-3">
-            <Database className="text-teal-700" size={22} aria-hidden="true" />
-            <div>
-              <h2 className="font-bold text-slate-950">{t("settingsStorage")}</h2>
-              <p className="mt-1 text-sm text-slate-600">localStorage</p>
-            </div>
+      <section className="panel">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-950 dark:text-teal-200">
+            <Info size={22} aria-hidden="true" />
           </div>
-        </div>
-
-        <div className="panel">
-          <div className="flex items-center gap-3">
-            <HardDrive className="text-teal-700" size={22} aria-hidden="true" />
-            <div>
-              <h2 className="font-bold text-slate-950">{t("settingsMode")}</h2>
-              <p className="mt-1 text-sm text-slate-600">Web MVP</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="panel sm:col-span-2">
-          <div className="flex items-center gap-3">
-            <Smartphone className="text-teal-700" size={22} aria-hidden="true" />
-            <div>
-              <h2 className="font-bold text-slate-950">{t("settingsNextStages")}</h2>
-              <p className="mt-1 text-sm text-slate-600">PWA, Capacitor, Android APK/AAB</p>
-            </div>
+          <div className="min-w-0">
+            <h2 className="text-lg font-bold text-slate-950">{t("aboutApp")}</h2>
+            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="font-semibold text-slate-700">{t("projectName")}</dt>
+                <dd className="mt-1 text-slate-600">{APP_NAME}</dd>
+              </div>
+              <div>
+                <dt className="font-semibold text-slate-700">{t("appVersion")}</dt>
+                <dd className="mt-1 text-slate-600">{APP_VERSION}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="font-semibold text-slate-700">{t("platformInfo")}</dt>
+                <dd className="mt-1 text-slate-600">{APP_PLATFORMS}</dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-sm leading-6 text-slate-600">{t("localDataInfo")}</p>
           </div>
         </div>
       </section>
