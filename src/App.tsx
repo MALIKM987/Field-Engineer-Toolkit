@@ -2,6 +2,7 @@ import { Calculator, ClipboardList, Settings, Wrench } from "lucide-react";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { ProjectList } from "./components/ProjectList";
 import { PROJECTS_STORAGE_KEY, upsertProject } from "./lib/storage/projectsStorage";
+import { parseStoredProjects } from "./lib/storage/projectsJson";
 import { CalculatorsScreen } from "./screens/CalculatorsScreen";
 import { ProjectDetailsScreen } from "./screens/ProjectDetailsScreen";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
@@ -23,7 +24,11 @@ function isProjectRoute(pathname: string) {
 }
 
 export default function App() {
-  const [projects, setProjects] = useLocalStorage<Project[]>(PROJECTS_STORAGE_KEY, []);
+  const [projects, setProjects] = useLocalStorage<Project[]>(
+    PROJECTS_STORAGE_KEY,
+    [],
+    parseStoredProjects,
+  );
   const navigate = useNavigate();
   const location = useLocation();
   const activeProjectId = location.pathname.startsWith("/projects/")

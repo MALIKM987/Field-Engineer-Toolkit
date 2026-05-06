@@ -1,4 +1,5 @@
 import type { Project } from "../../types";
+import { parseStoredProjects } from "./projectsJson";
 
 export const PROJECTS_STORAGE_KEY = "field-engineer-toolkit.projects";
 
@@ -7,12 +8,7 @@ export function getProjects(): Project[] {
     return [];
   }
 
-  try {
-    const rawValue = window.localStorage.getItem(PROJECTS_STORAGE_KEY);
-    return rawValue ? (JSON.parse(rawValue) as Project[]) : [];
-  } catch {
-    return [];
-  }
+  return parseStoredProjects(window.localStorage.getItem(PROJECTS_STORAGE_KEY));
 }
 
 export function saveProjects(projects: Project[]): void {

@@ -53,6 +53,12 @@ Build for production:
 npm run build
 ```
 
+Run unit tests:
+
+```bash
+npm run test
+```
+
 Preview the production build:
 
 ```bash
@@ -92,6 +98,18 @@ field-engineer-toolkit.projects
 The storage logic is isolated in `src/lib/storage`, so it can later be replaced with IndexedDB, a PWA-friendly storage layer, or Capacitor storage.
 
 The app can export all projects to a JSON file and import projects from JSON after validating the file structure and asking for overwrite confirmation.
+
+## JSON Backup
+
+Use `Settings -> Import i eksport danych` to export all projects to a JSON backup file. Import validates the JSON structure before replacing current browser data and asks for confirmation before overwriting.
+
+## Tests
+
+Unit tests are written with Vitest and cover calculator logic, calculator input validation, and JSON project import validation. Run them with:
+
+```bash
+npm run test
+```
 
 ## Roadmap
 

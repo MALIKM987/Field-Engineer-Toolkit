@@ -1,16 +1,12 @@
 import { ChangeEvent, useRef, useState } from "react";
 import { Download, Upload } from "lucide-react";
 import type { Project } from "../types";
-import { parseProjectsJson, serializeProjectsJson } from "../lib/storage/projectsJson";
+import { createProjectsJsonExport, parseProjectsJson } from "../lib/storage/projectsJson";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 interface DataImportExportProps {
   projects: Project[];
   onImportProjects: (projects: Project[]) => void;
-}
-
-function exportFileName() {
-  return `field-engineer-toolkit-projects-${new Date().toISOString().slice(0, 10)}.json`;
 }
 
 export function DataImportExport({ projects, onImportProjects }: DataImportExportProps) {
@@ -20,13 +16,12 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
   const [pendingProjects, setPendingProjects] = useState<Project[] | null>(null);
 
   function handleExport() {
-    const blob = new Blob([serializeProjectsJson(projects)], {
-      type: "application/json;charset=utf-8",
-    });
+    const exportData = createProjectsJsonExport(projects);
+    const blob = new Blob([exportData.content], { type: exportData.mimeType });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = exportFileName();
+    link.download = exportData.fileName;
     link.click();
     URL.revokeObjectURL(url);
   }

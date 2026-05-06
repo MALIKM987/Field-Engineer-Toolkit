@@ -4,6 +4,12 @@ type ParseProjectsJsonResult =
   | { ok: true; projects: Project[] }
   | { ok: false; error: string };
 
+export interface ProjectsJsonExport {
+  content: string;
+  fileName: string;
+  mimeType: string;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -91,7 +97,9 @@ function assertUniqueIds(projects: Project[]): void {
     const measurementIds = new Set<string>();
     for (const measurement of project.measurements) {
       if (measurementIds.has(measurement.id)) {
-        throw new Error(`Projekt "${project.name}" zawiera zduplikowany identyfikator pomiaru: ${measurement.id}.`);
+        throw new Error(
+          `Projekt "${project.name}" zawiera zduplikowany identyfikator pomiaru: ${measurement.id}.`,
+        );
       }
 
       measurementIds.add(measurement.id);
@@ -99,25 +107,12 @@ function assertUniqueIds(projects: Project[]): void {
   }
 }
 
-export function serializeProjectsJson(projects: Project[]): string {
-  return JSON.stringify(
-    {
-      exportedAt: new Date().toISOString(),
-      projects,
-      version: 1,
-    },
-    null,
-    2,
-  );
-}
-
-export function parseProjectsJson(rawValue: string): ParseProjectsJsonResult {
+export function parseProjectsPayload(value: unknown): ParseProjectsJsonResult {
   try {
-    const parsedValue = JSON.parse(rawValue) as unknown;
-    const projectValues = Array.isArray(parsedValue)
-      ? parsedValue
-      : isRecord(parsedValue) && Array.isArray(parsedValue.projects)
-        ? parsedValue.projects
+    const projectValues = Array.isArray(value)
+      ? value
+      : isRecord(value) && Array.isArray(value.projects)
+        ? value.projects
         : null;
 
     if (!projectValues) {
@@ -136,7 +131,47 @@ export function parseProjectsJson(rawValue: string): ParseProjectsJsonResult {
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Nie udało się odczytać pliku JSON.",
+      error: error instanceof Error ? error.message : "Nie udało się odczytać danych projektów.",
     };
   }
+}
+
+export function serializeProjectsJson(projects: Project[]): string {
+  return JSON.stringify(
+    {
+      exportedAt: new Date().toISOString(),
+      projects,
+      version: 1,
+    },
+    null,
+    2,
+  );
+}
+
+export function createProjectsJsonExport(projects: Project[]): ProjectsJsonExport {
+  return {
+    content: serializeProjectsJson(projects),
+    fileName: `field-engineer-toolkit-projects-${new Date().toISOString().slice(0, 10)}.json`,
+    mimeType: "application/json;charset=utf-8",
+  };
+}
+
+export function parseProjectsJson(rawValue: string): ParseProjectsJsonResult {
+  try {
+    return parseProjectsPayload(JSON.parse(rawValue) as unknown);
+  } catch {
+    return {
+      ok: false,
+      error: "Nie udało się odczytać pliku JSON.",
+    };
+  }
+}
+
+export function parseStoredProjects(rawValue: string | null): Project[] {
+  if (!rawValue) {
+    return [];
+  }
+
+  const result = parseProjectsJson(rawValue);
+  return result.ok ? result.projects : [];
 }
