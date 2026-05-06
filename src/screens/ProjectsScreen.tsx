@@ -15,7 +15,7 @@ export function ProjectsScreen({ projects, onCreateProject }: ProjectsScreenProp
         <p className="mt-1 text-sm text-slate-600">Zarządzanie pomiarami terenowymi i laboratoryjnymi.</p>
       </div>
 
-      <ProjectForm onCreateProject={onCreateProject} />
+      <ProjectForm onSubmit={onCreateProject} />
 
       <section className="space-y-3 lg:hidden">
         <h2 className="text-lg font-bold text-slate-950">Lista projektów</h2>

@@ -1,20 +1,38 @@
-import { FormEvent, useState } from "react";
-import { Plus } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Plus, Save, X } from "lucide-react";
 import type { ProjectFormData } from "../types";
 import { todayInputValue } from "../utils/date";
 import { validateProjectInput } from "../utils/validation";
 
 interface ProjectFormProps {
-  onCreateProject: (data: ProjectFormData) => void;
+  initialData?: ProjectFormData;
+  submitLabel?: string;
+  title?: string;
+  onCancel?: () => void;
+  onSubmit: (data: ProjectFormData) => void;
 }
 
-export function ProjectForm({ onCreateProject }: ProjectFormProps) {
-  const [formData, setFormData] = useState<ProjectFormData>({
-    name: "",
-    description: "",
-    date: todayInputValue(),
-  });
+const emptyProjectForm = (): ProjectFormData => ({
+  name: "",
+  description: "",
+  date: todayInputValue(),
+});
+
+export function ProjectForm({
+  initialData,
+  submitLabel,
+  title,
+  onCancel,
+  onSubmit,
+}: ProjectFormProps) {
+  const isEditing = Boolean(initialData);
+  const [formData, setFormData] = useState<ProjectFormData>(initialData ?? emptyProjectForm());
   const [errors, setErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    setFormData(initialData ?? emptyProjectForm());
+    setErrors([]);
+  }, [initialData]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,18 +43,21 @@ export function ProjectForm({ onCreateProject }: ProjectFormProps) {
       return;
     }
 
-    onCreateProject({
+    onSubmit({
       name: formData.name.trim(),
       description: formData.description.trim(),
       date: formData.date,
     });
-    setFormData({ name: "", description: "", date: todayInputValue() });
+
+    if (!isEditing) {
+      setFormData(emptyProjectForm());
+    }
   }
 
   return (
     <form className="panel space-y-4" onSubmit={handleSubmit}>
       <div>
-        <h2 className="text-lg font-bold text-slate-950">Nowy projekt</h2>
+        <h2 className="text-lg font-bold text-slate-950">{title ?? "Nowy projekt"}</h2>
       </div>
 
       {errors.length > 0 ? (
@@ -65,7 +86,7 @@ export function ProjectForm({ onCreateProject }: ProjectFormProps) {
           onChange={(event) =>
             setFormData((current) => ({ ...current, description: event.target.value }))
           }
-          placeholder="Zakres pomiarów, lokalizacja, uwagi"
+          placeholder="Zakres pomiarow, lokalizacja, uwagi"
         />
       </label>
 
@@ -79,10 +100,19 @@ export function ProjectForm({ onCreateProject }: ProjectFormProps) {
         />
       </label>
 
-      <button className="primary-button w-full" type="submit">
-        <Plus size={18} aria-hidden="true" />
-        Utwórz projekt
-      </button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <button className="primary-button w-full" type="submit">
+          {isEditing ? <Save size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}
+          {submitLabel ?? (isEditing ? "Zapisz projekt" : "Utworz projekt")}
+        </button>
+
+        {onCancel ? (
+          <button className="secondary-button w-full sm:w-auto" onClick={onCancel} type="button">
+            <X size={18} aria-hidden="true" />
+            Anuluj
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }

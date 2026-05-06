@@ -1,19 +1,77 @@
-import { ArrowLeft, CalendarDays, ClipboardList } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeft, CalendarDays, ClipboardList, Edit3, Trash2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { MeasurementForm } from "../components/MeasurementForm";
 import { MeasurementTable } from "../components/MeasurementTable";
+import { ProjectForm } from "../components/ProjectForm";
 import { ReportExport } from "../components/ReportExport";
-import type { MeasurementFormData, Project } from "../types";
-import { formatDate } from "../utils/date";
+import type { Measurement, MeasurementFormData, Project, ProjectFormData } from "../types";
+import { dateTimeInputValue, formatDate } from "../utils/date";
 
 interface ProjectDetailsScreenProps {
   projects: Project[];
   onAddMeasurement: (projectId: string, data: MeasurementFormData) => void;
+  onDeleteMeasurement: (projectId: string, measurementId: string) => void;
+  onDeleteProject: (projectId: string) => void;
+  onUpdateMeasurement: (
+    projectId: string,
+    measurementId: string,
+    data: MeasurementFormData,
+  ) => void;
+  onUpdateProject: (projectId: string, data: ProjectFormData) => void;
 }
 
-export function ProjectDetailsScreen({ projects, onAddMeasurement }: ProjectDetailsScreenProps) {
+export function ProjectDetailsScreen({
+  projects,
+  onAddMeasurement,
+  onDeleteMeasurement,
+  onDeleteProject,
+  onUpdateMeasurement,
+  onUpdateProject,
+}: ProjectDetailsScreenProps) {
   const { projectId } = useParams();
+  const [isEditingProject, setIsEditingProject] = useState(false);
+  const [editingMeasurementId, setEditingMeasurementId] = useState<string | null>(null);
   const project = projects.find((item) => item.id === projectId);
+
+  const editingMeasurement = useMemo(
+    () => project?.measurements.find((measurement) => measurement.id === editingMeasurementId),
+    [editingMeasurementId, project?.measurements],
+  );
+
+  const editingMeasurementData = editingMeasurement
+    ? {
+        name: editingMeasurement.name,
+        value: String(editingMeasurement.value),
+        unit: editingMeasurement.unit,
+        comment: editingMeasurement.comment,
+        timestamp: dateTimeInputValue(new Date(editingMeasurement.timestamp)),
+      }
+    : undefined;
+
+  function confirmProjectDeletion(projectToDelete: Project) {
+    const confirmed = window.confirm(
+      `Usunac projekt "${projectToDelete.name}" razem z pomiarami? Tej operacji nie mozna cofnac.`,
+    );
+
+    if (confirmed) {
+      onDeleteProject(projectToDelete.id);
+    }
+  }
+
+  function confirmMeasurementDeletion(measurement: Measurement) {
+    const confirmed = window.confirm(
+      `Usunac pomiar "${measurement.name}"? Tej operacji nie mozna cofnac.`,
+    );
+
+    if (confirmed && project) {
+      if (editingMeasurementId === measurement.id) {
+        setEditingMeasurementId(null);
+      }
+
+      onDeleteMeasurement(project.id, measurement.id);
+    }
+  }
 
   if (!project) {
     return (
@@ -55,11 +113,63 @@ export function ProjectDetailsScreen({ projects, onAddMeasurement }: ProjectDeta
               {formatDate(project.date)}
             </div>
           </div>
-          <ReportExport project={project} />
+          <div className="flex w-full flex-col gap-2 sm:w-auto">
+            <ReportExport project={project} />
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <button
+                className="secondary-button"
+                onClick={() => setIsEditingProject((current) => !current)}
+                type="button"
+              >
+                <Edit3 size={18} aria-hidden="true" />
+                Edytuj
+              </button>
+              <button
+                className="danger-button"
+                onClick={() => confirmProjectDeletion(project)}
+                type="button"
+              >
+                <Trash2 size={18} aria-hidden="true" />
+                Usun
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      <MeasurementForm onAddMeasurement={(data) => onAddMeasurement(project.id, data)} />
+      {isEditingProject ? (
+        <ProjectForm
+          initialData={{
+            name: project.name,
+            description: project.description,
+            date: project.date,
+          }}
+          onCancel={() => setIsEditingProject(false)}
+          onSubmit={(data) => {
+            onUpdateProject(project.id, data);
+            setIsEditingProject(false);
+          }}
+          submitLabel="Zapisz projekt"
+          title="Edytuj projekt"
+        />
+      ) : null}
+
+      <MeasurementForm
+        key={editingMeasurement?.id ?? "new-measurement"}
+        initialData={editingMeasurementData}
+        onCancel={editingMeasurement ? () => setEditingMeasurementId(null) : undefined}
+        onSubmit={(data) => {
+          if (editingMeasurement) {
+            onUpdateMeasurement(project.id, editingMeasurement.id, data);
+            setEditingMeasurementId(null);
+            return;
+          }
+
+          onAddMeasurement(project.id, data);
+        }}
+        submitLabel={editingMeasurement ? "Zapisz pomiar" : "Dodaj pomiar"}
+        title={editingMeasurement ? "Edytuj pomiar" : "Nowy pomiar"}
+      />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
@@ -68,7 +178,12 @@ export function ProjectDetailsScreen({ projects, onAddMeasurement }: ProjectDeta
             {project.measurements.length}
           </span>
         </div>
-        <MeasurementTable measurements={project.measurements} />
+        <MeasurementTable
+          editingMeasurementId={editingMeasurementId}
+          measurements={project.measurements}
+          onDeleteMeasurement={confirmMeasurementDeletion}
+          onEditMeasurement={(measurement) => setEditingMeasurementId(measurement.id)}
+        />
       </section>
     </div>
   );

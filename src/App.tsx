@@ -43,6 +43,29 @@ export default function App() {
     navigate(`/projects/${project.id}`);
   }
 
+  function handleUpdateProject(projectId: string, data: ProjectFormData) {
+    setProjects((currentProjects) =>
+      currentProjects.map((project) =>
+        project.id === projectId
+          ? {
+              ...project,
+              name: data.name,
+              description: data.description,
+              date: data.date,
+            }
+          : project,
+      ),
+    );
+  }
+
+  function handleDeleteProject(projectId: string) {
+    setProjects((currentProjects) => currentProjects.filter((project) => project.id !== projectId));
+
+    if (activeProjectId === projectId) {
+      navigate("/");
+    }
+  }
+
   function handleAddMeasurement(projectId: string, data: MeasurementFormData) {
     setProjects((currentProjects) =>
       currentProjects.map((project) => {
@@ -63,6 +86,53 @@ export default function App() {
             },
             ...project.measurements,
           ],
+        };
+      }),
+    );
+  }
+
+  function handleUpdateMeasurement(
+    projectId: string,
+    measurementId: string,
+    data: MeasurementFormData,
+  ) {
+    setProjects((currentProjects) =>
+      currentProjects.map((project) => {
+        if (project.id !== projectId) {
+          return project;
+        }
+
+        return {
+          ...project,
+          measurements: project.measurements.map((measurement) =>
+            measurement.id === measurementId
+              ? {
+                  ...measurement,
+                  name: data.name,
+                  value: parseDecimal(data.value),
+                  unit: data.unit,
+                  comment: data.comment,
+                  timestamp: dateTimeLocalToIso(data.timestamp),
+                }
+              : measurement,
+          ),
+        };
+      }),
+    );
+  }
+
+  function handleDeleteMeasurement(projectId: string, measurementId: string) {
+    setProjects((currentProjects) =>
+      currentProjects.map((project) => {
+        if (project.id !== projectId) {
+          return project;
+        }
+
+        return {
+          ...project,
+          measurements: project.measurements.filter(
+            (measurement) => measurement.id !== measurementId,
+          ),
         };
       }),
     );
@@ -125,6 +195,10 @@ export default function App() {
                 <ProjectDetailsScreen
                   projects={projects}
                   onAddMeasurement={handleAddMeasurement}
+                  onDeleteMeasurement={handleDeleteMeasurement}
+                  onDeleteProject={handleDeleteProject}
+                  onUpdateMeasurement={handleUpdateMeasurement}
+                  onUpdateProject={handleUpdateProject}
                 />
               }
               path="/projects/:projectId"

@@ -1,22 +1,42 @@
-import { FormEvent, useState } from "react";
-import { Plus } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Plus, Save, X } from "lucide-react";
 import type { MeasurementFormData } from "../types";
 import { dateTimeInputValue } from "../utils/date";
 import { validateMeasurementInput } from "../utils/validation";
 
 interface MeasurementFormProps {
-  onAddMeasurement: (data: MeasurementFormData) => void;
+  initialData?: MeasurementFormData;
+  submitLabel?: string;
+  title?: string;
+  onCancel?: () => void;
+  onSubmit: (data: MeasurementFormData) => void;
 }
 
-export function MeasurementForm({ onAddMeasurement }: MeasurementFormProps) {
-  const [formData, setFormData] = useState<MeasurementFormData>({
-    name: "",
-    value: "",
-    unit: "",
-    comment: "",
-    timestamp: dateTimeInputValue(),
-  });
+const emptyMeasurementForm = (): MeasurementFormData => ({
+  name: "",
+  value: "",
+  unit: "",
+  comment: "",
+  timestamp: dateTimeInputValue(),
+});
+
+export function MeasurementForm({
+  initialData,
+  submitLabel,
+  title,
+  onCancel,
+  onSubmit,
+}: MeasurementFormProps) {
+  const isEditing = Boolean(initialData);
+  const [formData, setFormData] = useState<MeasurementFormData>(
+    initialData ?? emptyMeasurementForm(),
+  );
   const [errors, setErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    setFormData(initialData ?? emptyMeasurementForm());
+    setErrors([]);
+  }, [initialData]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,7 +47,7 @@ export function MeasurementForm({ onAddMeasurement }: MeasurementFormProps) {
       return;
     }
 
-    onAddMeasurement({
+    onSubmit({
       name: formData.name.trim(),
       value: formData.value.trim(),
       unit: formData.unit.trim(),
@@ -35,19 +55,15 @@ export function MeasurementForm({ onAddMeasurement }: MeasurementFormProps) {
       timestamp: formData.timestamp,
     });
 
-    setFormData({
-      name: "",
-      value: "",
-      unit: "",
-      comment: "",
-      timestamp: dateTimeInputValue(),
-    });
+    if (!isEditing) {
+      setFormData(emptyMeasurementForm());
+    }
   }
 
   return (
     <form className="panel space-y-4" onSubmit={handleSubmit}>
       <div>
-        <h2 className="text-lg font-bold text-slate-950">Nowy pomiar</h2>
+        <h2 className="text-lg font-bold text-slate-950">{title ?? "Nowy pomiar"}</h2>
       </div>
 
       {errors.length > 0 ? (
@@ -67,7 +83,7 @@ export function MeasurementForm({ onAddMeasurement }: MeasurementFormProps) {
             onChange={(event) =>
               setFormData((current) => ({ ...current, name: event.target.value }))
             }
-            placeholder="Napięcie zasilania"
+            placeholder="Napiecie zasilania"
           />
         </label>
 
@@ -86,7 +102,7 @@ export function MeasurementForm({ onAddMeasurement }: MeasurementFormProps) {
 
       <div className="grid grid-cols-[1fr_112px] gap-3">
         <label className="block">
-          <span className="field-label">Wartość</span>
+          <span className="field-label">Wartosc</span>
           <input
             className="field-input"
             inputMode="decimal"
@@ -119,14 +135,23 @@ export function MeasurementForm({ onAddMeasurement }: MeasurementFormProps) {
           onChange={(event) =>
             setFormData((current) => ({ ...current, comment: event.target.value }))
           }
-          placeholder="Warunki pomiaru, przyrząd, odchylenia"
+          placeholder="Warunki pomiaru, przyrzad, odchylenia"
         />
       </label>
 
-      <button className="primary-button w-full" type="submit">
-        <Plus size={18} aria-hidden="true" />
-        Dodaj pomiar
-      </button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <button className="primary-button w-full" type="submit">
+          {isEditing ? <Save size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}
+          {submitLabel ?? (isEditing ? "Zapisz pomiar" : "Dodaj pomiar")}
+        </button>
+
+        {onCancel ? (
+          <button className="secondary-button w-full sm:w-auto" onClick={onCancel} type="button">
+            <X size={18} aria-hidden="true" />
+            Anuluj
+          </button>
+        ) : null}
+      </div>
     </form>
   );
 }
