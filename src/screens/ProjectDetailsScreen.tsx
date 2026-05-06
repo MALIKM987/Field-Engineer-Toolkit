@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, CalendarDays, ClipboardList, Edit3, Trash2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { MeasurementForm } from "../components/MeasurementForm";
 import { MeasurementTable } from "../components/MeasurementTable";
 import { ProjectForm } from "../components/ProjectForm";
@@ -21,6 +22,10 @@ interface ProjectDetailsScreenProps {
   onUpdateProject: (projectId: string, data: ProjectFormData) => void;
 }
 
+type PendingDelete =
+  | { type: "project"; project: Project }
+  | { type: "measurement"; measurement: Measurement };
+
 export function ProjectDetailsScreen({
   projects,
   onAddMeasurement,
@@ -32,6 +37,7 @@ export function ProjectDetailsScreen({
   const { projectId } = useParams();
   const [isEditingProject, setIsEditingProject] = useState(false);
   const [editingMeasurementId, setEditingMeasurementId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const project = projects.find((item) => item.id === projectId);
 
   const editingMeasurement = useMemo(
@@ -49,28 +55,23 @@ export function ProjectDetailsScreen({
       }
     : undefined;
 
-  function confirmProjectDeletion(projectToDelete: Project) {
-    const confirmed = window.confirm(
-      `Usunac projekt "${projectToDelete.name}" razem z pomiarami? Tej operacji nie mozna cofnac.`,
-    );
-
-    if (confirmed) {
-      onDeleteProject(projectToDelete.id);
+  function handleConfirmDelete() {
+    if (!pendingDelete || !project) {
+      return;
     }
-  }
 
-  function confirmMeasurementDeletion(measurement: Measurement) {
-    const confirmed = window.confirm(
-      `Usunac pomiar "${measurement.name}"? Tej operacji nie mozna cofnac.`,
-    );
-
-    if (confirmed && project) {
-      if (editingMeasurementId === measurement.id) {
-        setEditingMeasurementId(null);
-      }
-
-      onDeleteMeasurement(project.id, measurement.id);
+    if (pendingDelete.type === "project") {
+      onDeleteProject(pendingDelete.project.id);
+      setPendingDelete(null);
+      return;
     }
+
+    if (editingMeasurementId === pendingDelete.measurement.id) {
+      setEditingMeasurementId(null);
+    }
+
+    onDeleteMeasurement(project.id, pendingDelete.measurement.id);
+    setPendingDelete(null);
   }
 
   if (!project) {
@@ -82,11 +83,22 @@ export function ProjectDetailsScreen({
         </Link>
         <div className="panel">
           <h1 className="text-xl font-bold text-slate-950">Nie znaleziono projektu</h1>
-          <p className="mt-2 text-sm text-slate-600">Projekt nie istnieje w lokalnym magazynie danych.</p>
+          <p className="mt-2 text-sm text-slate-600">
+            Projekt nie istnieje w lokalnym magazynie danych.
+          </p>
         </div>
       </div>
     );
   }
+
+  const dialogTitle =
+    pendingDelete?.type === "project" ? "Usunąć projekt?" : "Usunąć pomiar?";
+  const dialogDescription =
+    pendingDelete?.type === "project"
+      ? `Projekt "${pendingDelete.project.name}" zostanie usunięty razem ze wszystkimi pomiarami. Tej operacji nie można cofnąć.`
+      : pendingDelete
+        ? `Pomiar "${pendingDelete.measurement.name}" zostanie usunięty z projektu. Tej operacji nie można cofnąć.`
+        : "";
 
   return (
     <div className="space-y-5">
@@ -126,11 +138,11 @@ export function ProjectDetailsScreen({
               </button>
               <button
                 className="danger-button"
-                onClick={() => confirmProjectDeletion(project)}
+                onClick={() => setPendingDelete({ type: "project", project })}
                 type="button"
               >
                 <Trash2 size={18} aria-hidden="true" />
-                Usun
+                Usuń
               </button>
             </div>
           </div>
@@ -181,10 +193,21 @@ export function ProjectDetailsScreen({
         <MeasurementTable
           editingMeasurementId={editingMeasurementId}
           measurements={project.measurements}
-          onDeleteMeasurement={confirmMeasurementDeletion}
+          onDeleteMeasurement={(measurement) =>
+            setPendingDelete({ type: "measurement", measurement })
+          }
           onEditMeasurement={(measurement) => setEditingMeasurementId(measurement.id)}
         />
       </section>
+
+      {pendingDelete ? (
+        <ConfirmDialog
+          description={dialogDescription}
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={handleConfirmDelete}
+          title={dialogTitle}
+        />
+      ) : null}
     </div>
   );
 }

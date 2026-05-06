@@ -25,7 +25,11 @@ import {
   calculateVppVrms,
 } from "../lib/calculators/electrical";
 import { formatEngineeringNumber, parseDecimal } from "../utils/numbers";
-import { validatePositiveInputs } from "../utils/validation";
+import {
+  validateFiniteInputs,
+  validateNonZeroInputs,
+  validatePositiveInputs,
+} from "../utils/validation";
 
 const calculators: Array<{ id: CalculatorId; label: string; icon: typeof Zap }> = [
   { id: "ohm", label: "Ohm", icon: Zap },
@@ -55,6 +59,10 @@ const periodMultipliers = {
   us: 1e-6,
   ns: 1e-9,
 };
+
+function firstError(...errors: Array<string | null>): string | null {
+  return errors.find(Boolean) ?? null;
+}
 
 function NumberField({
   label,
@@ -94,7 +102,9 @@ function ResultBox({ result, error }: { result: CalculatorResult | null; error: 
           {result.label}: {formatEngineeringNumber(result.value)} {result.unit}
         </p>
       ) : null}
-      {!error && !result ? <p className="mt-3 text-sm text-slate-500">Wpisz dane wejściowe.</p> : null}
+      {!error && !result ? (
+        <p className="mt-3 text-sm text-slate-500">Wpisz dane wejściowe.</p>
+      ) : null}
     </div>
   );
 }
@@ -151,29 +161,29 @@ function OhmsLawCalculator() {
     const r = parseDecimal(resistance);
 
     if (target === "voltage") {
-      const validation = validatePositiveInputs([
-        ["Prąd", i],
-        ["Rezystancja", r],
-      ]);
+      const validation = firstError(
+        validateFiniteInputs([["Prąd", i]]),
+        validateNonZeroInputs([["Rezystancja", r]]),
+      );
       return validation
         ? { result: null, error: validation }
         : { result: calculateOhmsLaw(target, { current: i, resistance: r }), error: null };
     }
 
     if (target === "current") {
-      const validation = validatePositiveInputs([
-        ["Napięcie", u],
-        ["Rezystancja", r],
-      ]);
+      const validation = firstError(
+        validateFiniteInputs([["Napięcie", u]]),
+        validateNonZeroInputs([["Rezystancja", r]]),
+      );
       return validation
         ? { result: null, error: validation }
         : { result: calculateOhmsLaw(target, { voltage: u, resistance: r }), error: null };
     }
 
-    const validation = validatePositiveInputs([
-      ["Napięcie", u],
-      ["Prąd", i],
-    ]);
+    const validation = firstError(
+      validateFiniteInputs([["Napięcie", u]]),
+      validateNonZeroInputs([["Prąd", i]]),
+    );
     return validation
       ? { result: null, error: validation }
       : { result: calculateOhmsLaw(target, { voltage: u, current: i }), error: null };
@@ -222,7 +232,7 @@ function PowerCalculator() {
     const r = parseDecimal(resistance);
 
     if (mode === "ui") {
-      const validation = validatePositiveInputs([
+      const validation = validateFiniteInputs([
         ["Napięcie", u],
         ["Prąd", i],
       ]);
@@ -232,19 +242,19 @@ function PowerCalculator() {
     }
 
     if (mode === "ur") {
-      const validation = validatePositiveInputs([
-        ["Napięcie", u],
-        ["Rezystancja", r],
-      ]);
+      const validation = firstError(
+        validateFiniteInputs([["Napięcie", u]]),
+        validateNonZeroInputs([["Rezystancja", r]]),
+      );
       return validation
         ? { result: null, error: validation }
         : { result: calculatePower(mode, { voltage: u, resistance: r }), error: null };
     }
 
-    const validation = validatePositiveInputs([
-      ["Prąd", i],
-      ["Rezystancja", r],
-    ]);
+    const validation = firstError(
+      validateFiniteInputs([["Prąd", i]]),
+      validateNonZeroInputs([["Rezystancja", r]]),
+    );
     return validation
       ? { result: null, error: validation }
       : { result: calculatePower(mode, { current: i, resistance: r }), error: null };
@@ -266,8 +276,12 @@ function PowerCalculator() {
         </select>
       </label>
       <div className="grid gap-4 sm:grid-cols-3">
-        {mode !== "ir" ? <NumberField label="Napięcie U [V]" value={voltage} onChange={setVoltage} /> : null}
-        {mode !== "ur" ? <NumberField label="Prąd I [A]" value={current} onChange={setCurrent} /> : null}
+        {mode !== "ir" ? (
+          <NumberField label="Napięcie U [V]" value={voltage} onChange={setVoltage} />
+        ) : null}
+        {mode !== "ur" ? (
+          <NumberField label="Prąd I [A]" value={current} onChange={setCurrent} />
+        ) : null}
         {mode !== "ui" ? (
           <NumberField label="Rezystancja R [Ω]" value={resistance} onChange={setResistance} />
         ) : null}
@@ -286,11 +300,15 @@ function VoltageDividerCalculator() {
     const vin = parseDecimal(inputVoltage);
     const r1 = parseDecimal(topResistance);
     const r2 = parseDecimal(bottomResistance);
-    const validation = validatePositiveInputs([
-      ["Napięcie wejściowe", vin],
-      ["R1", r1],
-      ["R2", r2],
-    ]);
+    const denominator = r1 + r2;
+    const validation = firstError(
+      validateFiniteInputs([["Napięcie wejściowe", vin]]),
+      validateNonZeroInputs([
+        ["R1", r1],
+        ["R2", r2],
+      ]),
+      denominator === 0 ? "Suma R1 i R2 musi być różna od zera." : null,
+    );
 
     return validation
       ? { result: null, error: validation }
@@ -370,11 +388,12 @@ function FrequencyCalculator() {
   const [periodUnit, setPeriodUnit] = useState<keyof typeof periodMultipliers>("ms");
 
   const { result, error } = useMemo(() => {
+    const label = mode === "frequencyToPeriod" ? "Częstotliwość" : "Okres";
     const baseValue =
       mode === "frequencyToPeriod"
         ? parseDecimal(value) * frequencyMultipliers[frequencyUnit]
         : parseDecimal(value) * periodMultipliers[periodUnit];
-    const validation = validatePositiveInputs([[mode === "frequencyToPeriod" ? "Częstotliwość" : "Okres", baseValue]]);
+    const validation = validatePositiveInputs([[label, baseValue]]);
 
     return validation
       ? { result: null, error: validation }
@@ -463,7 +482,11 @@ function VppCalculator() {
           <option value="vrmsToVpp">Vrms → Vpp</option>
         </select>
       </label>
-      <NumberField label={mode === "vppToVrms" ? "Vpp [V]" : "Vrms [V]"} value={value} onChange={setValue} />
+      <NumberField
+        label={mode === "vppToVrms" ? "Vpp [V]" : "Vrms [V]"}
+        value={value}
+        onChange={setValue}
+      />
       <ResultBox result={result} error={error} />
     </div>
   );

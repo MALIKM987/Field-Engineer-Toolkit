@@ -83,7 +83,7 @@ export function MeasurementForm({
             onChange={(event) =>
               setFormData((current) => ({ ...current, name: event.target.value }))
             }
-            placeholder="Napiecie zasilania"
+            placeholder="Napięcie zasilania"
           />
         </label>
 
@@ -102,7 +102,7 @@ export function MeasurementForm({
 
       <div className="grid grid-cols-[1fr_112px] gap-3">
         <label className="block">
-          <span className="field-label">Wartosc</span>
+          <span className="field-label">Wartość</span>
           <input
             className="field-input"
             inputMode="decimal"
@@ -135,7 +135,7 @@ export function MeasurementForm({
           onChange={(event) =>
             setFormData((current) => ({ ...current, comment: event.target.value }))
           }
-          placeholder="Warunki pomiaru, przyrzad, odchylenia"
+          placeholder="Warunki pomiaru, przyrząd, odchylenia"
         />
       </label>
 

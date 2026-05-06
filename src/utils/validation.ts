@@ -1,6 +1,8 @@
 import type { MeasurementFormData, ProjectFormData } from "../types";
 import { isPositiveNumber, parseDecimal } from "./numbers";
 
+type NamedValue = [label: string, value: number];
+
 export function validateProjectInput(data: ProjectFormData): string[] {
   const errors: string[] = [];
 
@@ -38,7 +40,29 @@ export function validateMeasurementInput(data: MeasurementFormData): string[] {
   return errors;
 }
 
-export function validatePositiveInputs(values: Array<[string, number]>): string | null {
+export function validateFiniteInputs(values: NamedValue[]): string | null {
+  const invalid = values.find(([, value]) => !Number.isFinite(value));
+  return invalid ? `${invalid[0]} musi być poprawną liczbą.` : null;
+}
+
+export function validateNonZeroInputs(values: NamedValue[]): string | null {
+  const finiteError = validateFiniteInputs(values);
+
+  if (finiteError) {
+    return finiteError;
+  }
+
+  const invalid = values.find(([, value]) => value === 0);
+  return invalid ? `${invalid[0]} musi być różna od zera.` : null;
+}
+
+export function validatePositiveInputs(values: NamedValue[]): string | null {
+  const finiteError = validateFiniteInputs(values);
+
+  if (finiteError) {
+    return finiteError;
+  }
+
   const invalid = values.find(([, value]) => !isPositiveNumber(value));
   return invalid ? `${invalid[0]} musi być liczbą większą od zera.` : null;
 }

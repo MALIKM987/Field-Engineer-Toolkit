@@ -33,7 +33,11 @@ export function calculatePower(
   }
 
   if (mode === "ur") {
-    return { label: "Moc", value: (values.voltage! * values.voltage!) / values.resistance!, unit: "W" };
+    return {
+      label: "Moc",
+      value: (values.voltage! * values.voltage!) / values.resistance!,
+      unit: "W",
+    };
   }
 
   return { label: "Moc", value: values.current! * values.current! * values.resistance!, unit: "W" };
@@ -59,10 +63,7 @@ export function calculateRcCutoff(resistanceOhm: number, capacitanceFarad: numbe
   };
 }
 
-export function calculateFrequencyPeriod(
-  mode: FrequencyMode,
-  value: number,
-): CalculatorResult {
+export function calculateFrequencyPeriod(mode: FrequencyMode, value: number): CalculatorResult {
   if (mode === "frequencyToPeriod") {
     return { label: "Okres", value: 1 / value, unit: "s" };
   }

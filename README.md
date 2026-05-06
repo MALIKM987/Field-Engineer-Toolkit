@@ -2,10 +2,14 @@
 
 Mobile-first web MVP for field and laboratory engineers. The app helps create measurement projects, record measurements, run everyday electrical calculations, and export simple PDF reports.
 
+The current version supports creating, editing, and deleting both projects and measurements.
+
 ## Features
 
 - Create measurement projects with name, description, and date.
+- Edit and delete measurement projects with confirmation.
 - Add measurements with name, value, unit, comment, timestamp.
+- Edit and delete measurements with confirmation.
 - Browse measurement history in a responsive table.
 - Use engineering calculators:
   - Ohm's law,
@@ -94,8 +98,6 @@ The storage logic is isolated in `src/lib/storage`, so it can later be replaced 
 
 Planned product improvements:
 
-- Edit and delete projects.
-- Edit and delete measurements.
 - Import and export project data.
 - Configurable units and calculator presets.
 - Richer PDF report templates.

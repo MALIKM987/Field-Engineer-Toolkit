@@ -1,5 +1,11 @@
 export function parseDecimal(value: string): number {
-  return Number(value.replace(",", ".").trim());
+  const normalizedValue = value.replace(",", ".").trim();
+
+  if (!normalizedValue) {
+    return Number.NaN;
+  }
+
+  return Number(normalizedValue);
 }
 
 export function isPositiveNumber(value: number): boolean {

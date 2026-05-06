@@ -86,7 +86,7 @@ export function ProjectForm({
           onChange={(event) =>
             setFormData((current) => ({ ...current, description: event.target.value }))
           }
-          placeholder="Zakres pomiarow, lokalizacja, uwagi"
+          placeholder="Zakres pomiarów, lokalizacja, uwagi"
         />
       </label>
 
@@ -103,7 +103,7 @@ export function ProjectForm({
       <div className="flex flex-col gap-2 sm:flex-row">
         <button className="primary-button w-full" type="submit">
           {isEditing ? <Save size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}
-          {submitLabel ?? (isEditing ? "Zapisz projekt" : "Utworz projekt")}
+          {submitLabel ?? (isEditing ? "Zapisz projekt" : "Utwórz projekt")}
         </button>
 
         {onCancel ? (

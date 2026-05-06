@@ -76,7 +76,7 @@ export function MeasurementTable({
                           type="button"
                         >
                           <Trash2 size={16} aria-hidden="true" />
-                          Usun
+                          Usuń
                         </button>
                       ) : null}
                     </div>
