@@ -4,6 +4,7 @@ import { normalizeBase64Data } from "./base64";
 import { createExportBlob, downloadBlob, type ExportDataEncoding } from "./blob";
 import { getExportPlatform, type ExportPlatform } from "./platform";
 
+export type ExportFileAction = "save" | "share";
 export type ExportKind = "json" | "other" | "pdf";
 export type ExportFileErrorCode =
   | "export-unavailable"
@@ -12,6 +13,7 @@ export type ExportFileErrorCode =
   | "write-failed";
 
 export interface ExportFileOptions {
+  action?: ExportFileAction;
   data: string;
   dataEncoding: ExportDataEncoding;
   dialogTitle?: string;
@@ -21,6 +23,7 @@ export interface ExportFileOptions {
 }
 
 export interface ExportFileResult {
+  action: ExportFileAction;
   fileName: string;
   platform: ExportPlatform;
   uri?: string;
@@ -55,6 +58,10 @@ export function sanitizeFileName(fileName: string): string {
   return sanitized || "field-engineer-toolkit-export";
 }
 
+export function exportCachePath(fileName: string): string {
+  return `exports/${sanitizeFileName(fileName)}`;
+}
+
 export function getExportKind(fileName: string, mimeType: string): ExportKind {
   const normalizedFileName = fileName.toLowerCase();
   const normalizedMimeType = mimeType.toLowerCase();
@@ -81,7 +88,38 @@ export function prepareNativeFilePayload(
   return { data: normalizeBase64Data(data) };
 }
 
-async function exportNativeFile(options: ExportFileOptions, fileName: string): Promise<ExportFileResult> {
+async function writeNativeCacheFile(
+  options: ExportFileOptions,
+  fileName: string,
+): Promise<{ path: string; uri: string }> {
+  const path = exportCachePath(fileName);
+  const payload = prepareNativeFilePayload(options.data, options.dataEncoding);
+
+  try {
+    const writeOptions: WriteFileOptions = {
+      data: payload.data,
+      directory: Directory.Cache,
+      path,
+      recursive: true,
+    };
+
+    if (payload.encoding) {
+      writeOptions.encoding = payload.encoding;
+    }
+
+    await Filesystem.writeFile(writeOptions);
+    const uriResult = await Filesystem.getUri({
+      directory: Directory.Cache,
+      path,
+    });
+
+    return { path, uri: uriResult.uri };
+  } catch (error) {
+    throw new ExportFileError("write-failed", "Native file write failed.", error);
+  }
+}
+
+async function ensureNativeShareAvailable(): Promise<void> {
   let canShare = false;
 
   try {
@@ -93,50 +131,76 @@ async function exportNativeFile(options: ExportFileOptions, fileName: string): P
   if (!canShare) {
     throw new ExportFileError("share-unavailable", "Native share is unavailable.");
   }
+}
 
-  const payload = prepareNativeFilePayload(options.data, options.dataEncoding);
-  let uri: string;
+async function exportNativeFile(
+  options: ExportFileOptions,
+  fileName: string,
+  action: ExportFileAction,
+): Promise<ExportFileResult> {
+  if (action === "share") {
+    await ensureNativeShareAvailable();
+  }
 
-  try {
-    const writeOptions: WriteFileOptions = {
-      data: payload.data,
-      directory: Directory.Cache,
-      path: `exports/${fileName}`,
-      recursive: true,
-    };
+  const { uri } = await writeNativeCacheFile(options, fileName);
 
-    if (payload.encoding) {
-      writeOptions.encoding = payload.encoding;
+  if (action === "share") {
+    try {
+      await Share.share({
+        dialogTitle: options.dialogTitle,
+        files: [uri],
+        title: options.shareTitle,
+      });
+    } catch (error) {
+      throw new ExportFileError("share-failed", "Native file share failed.", error);
     }
+  }
 
-    const writeResult = await Filesystem.writeFile(writeOptions);
-    uri = writeResult.uri;
-  } catch (error) {
-    throw new ExportFileError("write-failed", "Native file write failed.", error);
+  return { action, fileName, platform: "native", uri };
+}
+
+async function shareWebFile(options: ExportFileOptions, fileName: string): Promise<void> {
+  const blob = createExportBlob({
+    data: options.data,
+    dataEncoding: options.dataEncoding,
+    mimeType: options.mimeType,
+  });
+  const file = new File([blob], fileName, { type: options.mimeType });
+  const shareData: ShareData = {
+    files: [file],
+    title: options.shareTitle,
+  };
+  const navigatorWithShare = navigator as Navigator & {
+    canShare?: (data?: ShareData) => boolean;
+    share?: (data: ShareData) => Promise<void>;
+  };
+
+  if (!navigatorWithShare.share || !navigatorWithShare.canShare?.(shareData)) {
+    throw new ExportFileError("share-unavailable", "Web file sharing is unavailable.");
   }
 
   try {
-    await Share.share({
-      dialogTitle: options.dialogTitle,
-      files: [uri],
-      title: options.shareTitle,
-    });
+    await navigatorWithShare.share(shareData);
   } catch (error) {
-    throw new ExportFileError("share-failed", "Native file share failed.", error);
+    throw new ExportFileError("share-failed", "Web file share failed.", error);
   }
-
-  return { fileName, platform: "native", uri };
 }
 
 export async function exportFile(options: ExportFileOptions): Promise<ExportFileResult> {
+  const action = options.action ?? "save";
   const fileName = sanitizeFileName(options.fileName);
   const platform = getExportPlatform();
 
   if (platform === "native") {
-    return exportNativeFile(options, fileName);
+    return exportNativeFile(options, fileName, action);
   }
 
   try {
+    if (action === "share") {
+      await shareWebFile(options, fileName);
+      return { action, fileName, platform: "web" };
+    }
+
     const blob = createExportBlob({
       data: options.data,
       dataEncoding: options.dataEncoding,
@@ -144,8 +208,12 @@ export async function exportFile(options: ExportFileOptions): Promise<ExportFile
     });
     downloadBlob(blob, fileName);
   } catch (error) {
+    if (error instanceof ExportFileError) {
+      throw error;
+    }
+
     throw new ExportFileError("export-unavailable", "Web file export failed.", error);
   }
 
-  return { fileName, platform: "web" };
+  return { action, fileName, platform: "web" };
 }

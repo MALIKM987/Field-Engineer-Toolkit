@@ -1,4 +1,4 @@
-import { Calculator, ClipboardList, Settings, Wrench } from "lucide-react";
+import { Calculator, ClipboardList, Settings } from "lucide-react";
 import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { ProjectList } from "./components/ProjectList";
 import { PROJECTS_STORAGE_KEY, upsertProject } from "./lib/storage/projectsStorage";
@@ -153,9 +153,12 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-md bg-teal-700 text-white">
-            <Wrench size={22} aria-hidden="true" />
-          </div>
+          <img
+            alt=""
+            aria-hidden="true"
+            className="h-11 w-11 rounded-md object-cover shadow-sm"
+            src="/icons/icon-192.webp"
+          />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-teal-700">Field Engineer Toolkit</p>
             <h1 className="truncate text-lg font-bold text-slate-950">{t("appSubtitle")}</h1>

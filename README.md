@@ -132,7 +132,9 @@ The app can export all projects to a JSON file and import projects from JSON aft
 File export uses a shared layer in `src/lib/files`:
 
 - Web/PWA: PDF and JSON are downloaded through browser file download.
-- Android/Capacitor: files are written to `Directory.Cache` with `@capacitor/filesystem` and then passed to the Android system share sheet with `@capacitor/share`.
+- Android/Capacitor: the user can choose `Save` or `Share`.
+- Android `Save`: writes the file to the app cache with `@capacitor/filesystem`. This is app-owned cache storage, not the public Downloads folder.
+- Android `Share`: writes the file to the app cache, resolves it with `Filesystem.getUri()`, and opens the Android system share sheet with `@capacitor/share`.
 
 Language and appearance preferences are also stored locally in the browser.
 
@@ -140,7 +142,7 @@ Language and appearance preferences are also stored locally in the browser.
 
 Use `Settings -> Import i eksport danych` to export all projects to a JSON backup file. Import validates the JSON structure before replacing current browser data and asks for confirmation before overwriting.
 
-On Android, JSON backup export opens the system share menu so the user can save or share the file through installed apps.
+On Android, JSON backup export has separate save and share actions. Sharing opens the system share menu so the user can send the file to another app or save it through a system/file-manager target.
 
 ## Tests
 
@@ -230,6 +232,56 @@ For a device or emulator run through Capacitor:
 ```bash
 npm run android:run
 ```
+
+## Android Release Candidate
+
+Before testing or building an Android release candidate, run:
+
+```bash
+npm run build
+npm run test
+npm run android:sync
+```
+
+Versioning:
+
+- Web/package version: `0.1.0` in `package.json`.
+- Android `versionName`: `0.1.0` in `android/app/build.gradle`.
+- Android `versionCode`: `1` for the first internal release candidate. Increase it by 1 for every uploaded Google Play build.
+
+Signed AAB generation:
+
+1. Run `npm run android:sync`.
+2. Open Android Studio with `npm run android:open`.
+3. In Android Studio, choose `Build > Generate Signed Bundle / APK`.
+4. Select `Android App Bundle`.
+5. Use a local release keystore stored outside the repository.
+6. Build the signed `.aab`.
+
+Do not commit keystores, passwords, `key.properties`, or signing credentials. Keep signing files outside the project or in ignored local-only paths.
+
+Physical phone RC checklist:
+
+- Fresh install starts correctly.
+- Projects can be created, edited, and deleted.
+- Measurements can be created, edited, and deleted.
+- JSON backup `Save` shows a clear app-cache success message.
+- JSON backup `Share` opens the Android share sheet.
+- PDF report `Save` shows a clear app-cache success message.
+- PDF report `Share` opens the Android share sheet.
+- Imported JSON keeps validation and overwrite confirmation.
+- Calculators work, including waveform Vpp/Vrms.
+- Light, dark, and system themes remain readable.
+- PL/EN/DE/ES/FR language switching works.
+- App works offline after first launch.
+
+Branding and icons:
+
+- Web/PWA icons live in `public/icons/`.
+- The source logo asset is in `assets/icon-only.png`.
+- Android launcher icons live in `android/app/src/main/res/mipmap-*`.
+- Android adaptive icon XML lives in `android/app/src/main/res/mipmap-anydpi-v26/`.
+- Google Play will also require store assets such as a 512x512 high-resolution app icon, feature graphic, screenshots, app description, privacy details, and content rating.
 
 ## Roadmap
 

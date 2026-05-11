@@ -9,7 +9,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      includeAssets: ["pwa-icon.svg"],
+      includeAssets: [
+        "icons/icon-192.webp",
+        "icons/icon-512.webp",
+      ],
       injectRegister: "auto",
       manifest: {
         name: "Field Engineer Toolkit",
@@ -20,9 +23,15 @@ export default defineConfig({
         display: "standalone",
         icons: [
           {
-            src: "/pwa-icon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/icons/icon-192.webp",
+            sizes: "192x192",
+            type: "image/webp",
+            purpose: "any maskable",
+          },
+          {
+            src: "/icons/icon-512.webp",
+            sizes: "512x512",
+            type: "image/webp",
             purpose: "any maskable",
           },
         ],

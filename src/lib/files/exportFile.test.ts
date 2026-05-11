@@ -2,12 +2,18 @@ import { Encoding } from "@capacitor/filesystem";
 import { describe, expect, it } from "vitest";
 import { arrayBufferToBase64, normalizeBase64Data } from "./base64";
 import { createExportBlob } from "./blob";
-import { getExportKind, prepareNativeFilePayload, sanitizeFileName } from "./exportFile";
+import {
+  exportCachePath,
+  getExportKind,
+  prepareNativeFilePayload,
+  sanitizeFileName,
+} from "./exportFile";
 import { projectReportFileName } from "../reports/projectReport";
 
 describe("file export helpers", () => {
   it("sanitizes generated file names", () => {
     expect(sanitizeFileName(" raport / projekt:test?.pdf ")).toBe("raport-projekt-test.pdf");
+    expect(exportCachePath(" raport / projekt:test?.pdf ")).toBe("exports/raport-projekt-test.pdf");
     expect(projectReportFileName("Projekt / Test 01")).toBe(
       "field-engineer-toolkit-projekt-test-01-report.pdf",
     );

@@ -1,8 +1,13 @@
 import { ChangeEvent, useRef, useState } from "react";
-import { Download, Upload } from "lucide-react";
+import { Download, Share2, Upload } from "lucide-react";
 import type { Project } from "../types";
 import { useI18n } from "../i18n";
-import { ExportFileError, exportFile } from "../lib/files/exportFile";
+import {
+  ExportFileError,
+  exportFile,
+  type ExportFileAction,
+  type ExportFileResult,
+} from "../lib/files/exportFile";
 import { createProjectsJsonExport, parseProjectsJson } from "../lib/storage/projectsJson";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -16,7 +21,7 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [exportingAction, setExportingAction] = useState<ExportFileAction | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [pendingProjects, setPendingProjects] = useState<Project[] | null>(null);
@@ -35,16 +40,25 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
     return t("jsonExportError");
   }
 
-  async function handleExport() {
+  function resolveSuccessMessage(result: ExportFileResult): string {
+    if (result.action === "share") {
+      return t("fileSavedAndShared");
+    }
+
+    return result.platform === "native" ? t("fileSavedInAppCache") : t("fileDownloadStarted");
+  }
+
+  async function handleExport(action: ExportFileAction) {
     setExportError(null);
     setExportMessage(null);
     setImportError(null);
     setImportMessage(null);
-    setIsExporting(true);
+    setExportingAction(action);
 
     try {
       const exportData = createProjectsJsonExport(projects);
       const result = await exportFile({
+        action,
         data: exportData.content,
         dataEncoding: "text",
         dialogTitle: t("shareDialogTitle"),
@@ -53,11 +67,11 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
         shareTitle: t("shareJsonTitle"),
       });
 
-      setExportMessage(result.platform === "native" ? t("fileSavedAndShared") : t("exportSuccess"));
+      setExportMessage(resolveSuccessMessage(result));
     } catch (error) {
       setExportError(resolveExportError(error));
     } finally {
-      setIsExporting(false);
+      setExportingAction(null);
     }
   }
 
@@ -132,10 +146,24 @@ export function DataImportExport({ projects, onImportProjects }: DataImportExpor
         </div>
       ) : null}
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        <button className="secondary-button w-full" disabled={isExporting} onClick={handleExport} type="button">
+      <div className="grid gap-2 sm:grid-cols-3">
+        <button
+          className="secondary-button w-full"
+          disabled={Boolean(exportingAction)}
+          onClick={() => handleExport("save")}
+          type="button"
+        >
           <Download size={18} aria-hidden="true" />
-          {isExporting ? t("reportGenerating") : t("dataExportJson")}
+          {exportingAction === "save" ? t("reportGenerating") : t("saveFile")}
+        </button>
+        <button
+          className="secondary-button w-full"
+          disabled={Boolean(exportingAction)}
+          onClick={() => handleExport("share")}
+          type="button"
+        >
+          <Share2 size={18} aria-hidden="true" />
+          {exportingAction === "share" ? t("reportGenerating") : t("shareFile")}
         </button>
         <button
           className="primary-button w-full"
